@@ -1,0 +1,241 @@
+ <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+   <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css" rel="stylesheet" />
+   <link rel="stylesheet" type="text/css" href="./styles/page.css" media="all">
+   <link rel="stylesheet" type="text/css" href="./styles/Main.css" media="all">
+   <link rel="shortcut icon" href="https://interreg-med.eu/typo3conf/ext/e_magineurs/progmed/Resources/Public/Images/favicon.ico" type="image/x-icon">
+<div ng-if="noRes==true">
+  <p><h3>No results</h3></p>
+  	<script>showMap(false)</script>
+</div>
+
+<div ng-if="results.length>0">
+<span align=Left><b>related concepts:</b>
+<p class="description" style="overflow-wrap: break-word">
+        <span ng-repeat="word in results[0].metadata.simWord">
+       		  <button type="button" class="btn btn-lg btn-light" id="{{word}}" ng-click="changeSearch(word)" value={{word}}>{{word}}</button>
+	    </span>
+ </p>
+ </span>
+ <p align=Left>{{results.length}} results</p>
+ <script>showMap(true)</script>
+</div>
+<form name="metadataForm" method="POST" action="http://90.147.102.57/sfload/showMap.php" target="_blank">
+<input type="hidden" name="info" id="infoSend" value="empty">
+<div ng-repeat="x in results">
+  <input type="hidden" name="deliverables[]" id="metadata{{x.result.id}}" value="{{x.result.id}}">
+</div>
+ </form>
+<div ng-repeat="result in resultsDisp" class="annuaire row-projects">
+
+  <div class="project-content">
+    <div class="progress" style="width:140px;height:8px;float:right;padding:0px;margin:0px;border:0px;background-color: #fff;">
+           <div class="progress-bar" align="right" id="result.result.score" align="center" role="progressbar" style="width:{{result.result.scoreperc}}%;" aria-valuenow="{{result.result.score}}" aria-valuemin="0" aria-valuemax="0.10"></div><br>
+     </div>
+    <div class="grid5050">
+      <div class="bloc50">
+       	<h5 style="overflow-wrap: break-word;"><a href={{result.metadata.url}} target="_blank">{{result.result.id}}</a> <span class="title-project"><p></p></h5>
+
+
+        <p class="description" style="overflow-wrap: break-word">
+          {{result.metadata.delDescription}}
+        </p><p></p><br>
+
+        <button type="button" id={{result.result.id}} style="height:50px" style="width:100px" class="btn btn-warning" data-toggle="modal" data-target="#firstModal{{$index}}">Summarization</button>
+		<!-- Modal -->
+		<div class="modal fade bd-example-modal-lg" id="firstModal{{$index}}" tabindex="-1" role="dialog" aria-labelledby="{{result.result.id}}" aria-hidden="true">
+		  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title"  id="exampleModalLongTitle">SUMMARIZE <i>{{result.result.id}}</i></h5>
+		         </div>
+					<div class="modal-body">
+					  <form>
+						<div class="form-group row">
+							<div class="col-md-6">
+								<label>Summary lenght:</label>
+								<select id="lenType{{result.result.id}}" name="{{result.result.id}}" onchange=changeLabel(value,name)>
+									<option value="Sentences">Sentences</option>
+									<option value="Rate">Rate</option>
+								</select>
+							</div>
+							<div class="col-md-6" id="sentences{{result.result.id}}">
+								<label for="recipient-name" class="col-form-label">Number
+									of sentences:</label>
+									<input type="text" id="numsen{{result.result.id}}">
+							</div>
+							<div class="col-md-6" id="rate{{result.result.id}}" style="display:none">
+								<label id="label{{result.result.id}}" for="recipient-name" class="col-form-label">Rate
+									of sentences: 50%</label>
+								<div class="slidecontainer">
+							  <input type="range" min="1" max="100" value="50" class="slider" name="label{{result.result.id}}" id="numret{{result.result.id}}" onChange=valueRange(name,id)>
+								
+								</div>
+							</div>
+						</div>
+						<div class="form-group row">
+							<div class="col-md-12">
+					       <label for="recipient-name" class="col-form-label">Seed term (optional)</label>
+									<input type="text" id="token">
+					 	 	</div>
+					 	 </div>
+						</form>
+					</div>
+				    <div class="modal-footer">
+					<button id="{{result.result.id}}" type="button" class="btn btn-success getSummary" data-toggle="modal" data-target="#secondModal{{$index}}" data-dismiss="modal" onClick=httpsummaryze(id)> Show</button>
+		         <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+		      </div>
+		    </div>
+		  </div>
+        </div>
+          <!-- Modal2 -->
+					<div class="modal fade" id="secondModal{{$index}}" tabindex="-1" role="dialog" aria-labelledby="{{result.result.id}}" aria-hidden="true">
+				  <div class="modal-dialog modal-dialog-centered" role="document">
+				    <div class="modal-content" style="overflow: hidden;">
+				      <div class="modal-header">
+				        <h5 class="modal-title" id="exampleModalLongTitle">Summarize</h5>
+				        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				          <span aria-hidden="true">&times;</span>
+				        </button>
+				      </div>
+				      <div class="modal-body" style="overflow-y: scroll; max-height:500px; max-width:800px" id="summary{{result.result.id}}">
+				     <script>
+				     function getContent(collection,nameDoc)
+                     {
+                         var xmlHttp = new XMLHttpRequest();
+                         var requrl="http://90.147.102.57:9001/ivp/v2/getdoc/" + collection + "/" + nameDoc;
+                         xmlHttp.open( "GET",requrl, false ); // false for synchronous request
+                         xmlHttp.send( null );
+                         return xmlHttp.responseText;
+                     }
+                     function httpsummaryze(id)
+                      {
+
+                    	  var redundancy_threshold=0.95;
+                    	  var tfidf_threshold=0.2;
+                    	  var coll=document.getElementById("collection");
+                    	  var nameCollection = coll.options[coll.selectedIndex].value;
+                    	  var nameDoc=id;
+                    	  if(document.getElementById("lenType"+id).value=="Sentences"){
+                    	  		var summary_length=document.getElementById("numsen"+id).value;
+                    	  		summary_length=(parseInt(summary_length,10));
+                    	  }else{
+                    		  var summary_length=document.getElementById("numret"+id).value;
+               
+                  	  		  summary_length=(parseInt(summary_length,10))/101;
+                    	  }
+                    	  if(!summary_length){
+                    		  summary_length=0;
+                    	  }
+           
+                    	  var query_based_token=[];
+                    	  var content=getContent(nameCollection,nameDoc);
+                    	  var documents=[{ "id": nameDoc, "text": content }];
+                    	  var params=JSON.stringify({ redundancy_threshold : redundancy_threshold, tfidf_threshold : tfidf_threshold, summary_length : summary_length, query_based_token : query_based_token, documents : documents });
+                    	  var xmlHttp = new XMLHttpRequest();
+                          xmlHttp.open( "POST"," http://90.147.102.57:9003/getSummary", false ); // false for synchronous request
+                          xmlHttp.setRequestHeader("Content-type","text/plain; charset=utf-8");
+                          xmlHttp.send( params );
+                          var json=xmlHttp.responseText.slice(1,xmlHttp.responseText.length-1);
+                          var obj = JSON.parse(json);
+                          var divId="summary"+id;
+                          document.getElementById(divId).innerHTML=obj.summary;
+                        return obj.summary;
+                      }
+                        </script>
+				      </div>
+				      <div class="modal-footer">
+				        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+
+				      </div>
+				    </div>
+				  </div>
+				</div>
+
+        <button type="button"  style="height:50px" style="width:100px" class="btn btn-primary" name="deliv{{result.result.id}}" OnClick=mostra(name)>Deliverable details</button>
+        <button type="button"  style="height:50px" style="width:100px" class="btn btn-primary" name="part{{result.result.id}}" OnClick=mostra(name)>Partners details</button><p></p>
+
+              <div  id="deliv{{result.result.id}}" style="display:none">
+       				 <span class="date"><b>Date:</b>  {{result.metadata.delDate}}</span><p></p>
+       		<div class="other-metadata" style="max-height:30%">
+       		 <p>
+         		 <b> Keywords: </b>{{result.metadata.delKeywords.join(', ')}}</p>
+			</div>
+			<div class="other-metadata" style="max-height:30%">
+			        <p>
+          		<b> Target Audience: </b>{{result.metadata.delTargets.join(', ')}}</p>
+
+			</div>
+			<div class="Budget">
+			  <p><b>Deliverable budget:</b> &euro;{{result.metadata.deliverableBudget}}</p>
+			</div>
+
+     		</div>
+       </div>
+
+      <div class="bloc50">
+       <span class="date"><b>PROJECT NAME:</b>  {{result.metadata.projName}}</span><p></p>
+        <span class="date"><b>PROJECT BUDGET:</b>   &euro;{{result.metadata.projectBudget}}</span><p></p>
+
+     <div  id="part{{result.result.id}}" style="display:none">
+       <div class="pre-scrollable">
+        <p>
+          <b> PARTNERS: </b>
+          <div ng-repeat="partner in result.metadata.partners">
+           <span class="date"><b>Name:</b>  {{partner.name}}<span ng-if="partner.lead=='true'"><b> (Lead) </b></span></span><br>
+           <span class="date"><b>Budget:</b> &euro;{{partner.budget}}</span><br>
+	       <span class="date"><b>Country:</b> {{partner.country}} </span><br>
+	         <span class="date"> ------------------------------------------------------------------------------------------------------------------------------------</span>
+	          </div>
+          </div>
+          </div>
+		</div>
+    </div>
+  </div>
+</div>
+<script language="javascript">
+  	function mostra(name)
+  	{
+  		if(document.getElementById(name).style.display == "inline"){
+  			document.getElementById(name).style.display = "none";
+  		}else{
+  			document.getElementById(name).style.display = "inline"
+  		}
+  	}
+  </script>
+  <script type="text/javascript">
+  function showMap(bool) {
+	  if(bool){
+		document.getElementById("showMap").style.display = "inline";
+	  }else{
+		document.getElementById("showMap").style.display = "none";
+	  }
+
+  }
+  function formatNumber(num) {
+	  return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+	}
+
+  function changeLabel(value,name){
+	  if( value!="Sentences"){
+	 	 document.getElementById("sentences"+name).style.display ="none"
+	  	 document.getElementById("rate"+name).style.display ="inline"
+	
+	  }else{
+		  document.getElementById("rate"+name).style.display ="none"
+		  document.getElementById("sentences"+name).style.display ="inline"
+			
+	}
+  }
+  function valueRange(name,id){
+	  var value=document.getElementById(id).value;
+	  document.getElementById(name).innerHTML = "Rate of sentences: "+value+ "%";
+  }
+
+</script>
+<br>
+<div class="pagination_annuaire">
+  <ul class="f3-widget-paginator">
+    <li ng-repeat="page in pager.pages" ng-class="{disabled:pager.currentPage === page}"> <a ng-click="setPage(page)"> {{page}} </a> </li>
+    <li ng-if="results.length!=0" ng-class="{disabled:pager.currentPage === pager.totalPages}"> <a ng-click="setPage(pager.currentPage + 1)"> Next </a> </li>
+  </ul>
+</div>

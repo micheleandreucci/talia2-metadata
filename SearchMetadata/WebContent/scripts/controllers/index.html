@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body>
+
+    <button type="button" onclick=httpGet() name="button" value="clicca"></button>
+
+
+
+<select>
+    <script type="text/javascript">
+      var x=httpGet();
+      var obj=JSON.parse(x);
+      var i=0;
+
+
+      for(var y in obj){
+        obj[i] = obj[i].slice(2,40);
+        document.write("<option value="+obj[i]+">"+obj[i]+"</option>");
+        obj[i];
+        i++;
+      }
+     function httpGet()
+     {
+         var xmlHttp = new XMLHttpRequest();
+         xmlHttp.open( "GET"," http://90.147.102.57:9001/ivp/v1/collections", false ); // false for synchronous request
+         xmlHttp.send( null );
+         return xmlHttp.responseText;
+
+     }
+     </script>
+     </select>
+  </body>
+</html>

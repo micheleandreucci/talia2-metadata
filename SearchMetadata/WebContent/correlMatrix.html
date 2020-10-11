@@ -1,0 +1,122 @@
+<body>
+<div id="matrixTable" style="display:none;margin-left:7%;margin-right:7%">
+<h4>Matrix generated for <i>{{collection}}</i></h4>
+<h6 ng-if="loadedDescription!=''">Description:{{loadedDescription}} </h6>
+<table class="table table-bordered" align="center">
+  <thead>
+    <tr style="border: 1px solid #002b80;">
+    		<th></th>
+   			<th ng-repeat="y in arraycolumns track by $index">
+   			<!-- Button trigger modal -->
+			<button type="button"  name="buttonConcept" class="btn btn-primary" data-toggle="modal" data-target="#firstModal{{$index}}" ng-click="refresh();loadFirstCheckbox($index)" value="{{y.label}}">
+				<span class="btn-primary" data-toggle="tooltip" data-placement="top" title="{{y.terms}}">{{y.label}}</span>
+			</button>
+		<div data-backdrop="static" data-keyboard="false" class="modal fade" id="firstModal{{$index}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+				  <div class="modal-content">
+				    <div class="modal-header">
+				      <h5 class="modal-title" id="exampleModalLabel">Define concept</h5>
+				    </div>
+				    <div class="modal-body">
+				     <form>
+			          <div class="form-group">
+			            <label for="conceptName" class="col-form-label" align="left">Enter concept name:</label>
+			            <input type="text" name="conceptName" class="form-control" id="conceptName" ng-model="y.label" value="{{y.label}}">
+			          </div>
+			          <div id="firstTextInput{{$index}}">
+				          <div class="row form-group">
+					          <div class="col-xs-12">
+					            <label for="message-text" class="col-form-label" align="left">Enter textual description:</label>
+					            <textarea onkeyup="checkTextArea(value,name)" name="conceptFirst{{$index}}" id="first-text{{$index}}" ng-model="textDescription" placeholder="Write a text from which extract tokens..." style="height:300px" ></textarea>
+				            </div>
+				             <button type="button" align="left" id="" style="float:left;margin:3%;" class="btn" ng-click="viewConcepts()">view concepts</button>
+				          <button type="button" align="right" id="conceptFirst{{$index}}" value="{{$index}}" style="float:right;margin:3%;display:none" class="btn" ng-click="conceptsFromText1(textDescription,$index,'firstTextInput','tokensFirst')">generate</button>
+				          </div>
+				       </div>
+				       <div style="display:none" id="tokensFirst{{$index}}">
+					            <label for="message-text" class="col-form-label" align="left">Tokens from text:</label>
+					            	<div style="border:1px solid #002b80;border-radius:5px;max-height:150px;overflow-y:scroll">				           
+					            		<label style="cursor:pointer;margin:2px;display:inline-block" ng-scope="$parent" ng-repeat="term in phrases1[$index].terms track by $index"><input style="height:17px;width:18px;" name="phrases1{{$parent.$index}}[]" type="checkbox" value="{{term}}" checked>{{term}}</label>
+					            	</div>
+					            <label for="message-text" class="col-form-label" align="left">Related concepts:</label>
+					            	<div style="border:1px solid #002b80;border-radius:5px;max-height:150px;overflow-y:scroll">
+					            	 	<label style="cursor:pointer;margin:2px;display:inline-block" ng-scope="$parent" ng-repeat="term in phrases1[$index].related track by $index"><input style="height:17px;width:18px;" name="phrases1{{$parent.$index}}[]" type="checkbox" value="{{term}}">{{term}}</label>
+					            	</div>
+				          </div>
+			          </form>
+				    </div>
+				    <div class="modal-footer">
+				    <button type="button" class="btn" ng-click="resetCheckbox($index,'firstTextInput','tokensFirst','first-text')">Reset</button>
+				      <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="setFirstTerms($index)">Save and close</button>
+				    
+				    </div>
+				  </div>
+				</div>
+	</div>
+	</th>
+    </tr>
+  </thead>
+   <tbody >
+   <tr ng-repeat="x in arraylines track by $index">
+   		<td style="vertical-align: middle;">
+   		<!-- Button trigger modal -->
+		<button style="vertical-align: middle;" type="button"  name="buttonConcept" class="btn btn-primary" data-toggle="modal" data-target="#secondModal{{$index}}" value="{{x.label}}" ng-click="refresh();loadSecondCheckbox($index)">
+			<span class="btn-primary" data-toggle="tooltip" data-placement="top" title="{{x.terms}}">{{x.label}}</span>
+		</button>
+		<div data-backdrop="static" data-keyboard="false" class="modal fade" id="secondModal{{$index}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+				<div class="modal-dialog" role="document">
+				  <div class="modal-content">
+				    <div class="modal-header">
+				      <h5 class="modal-title" id="exampleModalLabel">Define concept</h5>
+				    </div>
+				    <div class="modal-body">
+				     <form>
+			          <div class="form-group">
+			            <label for="conceptName" class="col-form-label" align="left">Enter concept name:</label>
+			            <input type="text" name="conceptName" class="form-control" id="conceptName" ng-model="x.label" value="{{x.label}}">
+			          </div>
+			          <div id="secondTextInput{{$index}}">
+			          <div class="row form-group">
+				          <div class="col-xs-12">
+				            <label for="message-text" class="col-form-label" align="left">Enter textual description:</label>
+				            <textarea onkeyup="checkTextArea(value,name)" name="conceptSecond{{$index}}" id="second-text{{$index}}" ng-model="textDescription" placeholder="Write a text from which extract tokens..." style="height:300px" ></textarea>
+				            </div>
+				            <button type="button" align="left" id="" style="float:left;margin:3%;" class="btn" ng-click="viewConcepts()">view concepts</button>
+				          <button type="button" align="right" id="conceptSecond{{$index}}" value="{{$index}}" style="float:right;margin:3%;display:none" class="btn" ng-click="conceptsFromText2(textDescription,$index,'secondTextInput','tokensSecond',2)">generate</button>
+				         </div>
+			          </div>
+			          <div style="display:none" id="tokensSecond{{$index}}">
+				            <label for="message-text" class="col-form-label" align="left">Tokens from text:</label>
+				            	<div style="border:1px solid #002b80;border-radius:5px;max-height:150px;overflow-y:scroll">				           
+				            		<label style="cursor:pointer;margin:2px;display:inline-block" ng-scope="$parent" ng-repeat="term in phrases2[$index].terms track by $index"><input style="height:17px;width:18px;" name="phrases2{{$parent.$index}}[]" type="checkbox" value="{{term}}" checked>{{term}}</label>
+				            	</div>
+				            <label for="message-text" class="col-form-label" align="left">Related concepts:</label>
+				            	<div style="border:1px solid #002b80;border-radius:5px;max-height:150px;overflow-y:scroll">
+				            	 	<label style="cursor:pointer;margin:2px;display:inline-block" ng-scope="$parent" ng-repeat="term in phrases2[$index].related track by $index"><input style="height:17px;width:18px;" name="phrases2{{$parent.$index}}[]" type="checkbox" value="{{term}}">{{term}}</label>
+				            	</div>
+			          	</div>
+			          </form>
+				    </div>
+				    <div class="modal-footer">
+				      <button type="button" class="btn" ng-click="resetCheckbox($index,'secondTextInput','tokensSecond','second-text')">Reset</button>
+				      <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="setSecondsTerms($index)">Save and close</button>
+				    </div>
+				  </div>
+				</div>
+				</div>
+   		 </td>
+   		 <td ng-repeat="cell in matrixcells[$index] track by $index">
+   		 	<div ng-repeat="term in cell" style="max-height:250px;"><button type="button" class="btn btn-link" ng-click="search(term.keyword)" value="term.keyword">{{term.keyword}} ({{term.score}})</button></div>
+    	</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+  <script src="controller_matrix.js">
+
+  </script>
+
+  </body>
+<!-- Modal -->
+		<!-- -->
+</html>
