@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
@@ -51,7 +52,7 @@ public class Scraper {
 
 		// Creo la connessione al database
 		cn = DriverManager.getConnection(
-				"jdbc:mysql://localhost:3306/talia2?useUnicode=yes&characterEncoding=UTF-8&user=root&password=root");
+				"jdbc:mysql://localhost:3306/talia2?useUnicode=yes&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false&user=root&password=root");
 		// json è il nome del database
 		sql1 = "INSERT ignore INTO communities VALUES('" + cat.getCollection() + "');";
 		st = (Statement) cn.createStatement();
@@ -68,48 +69,76 @@ public class Scraper {
 				if (st.executeQuery(checkDuplicateProjects).first() == false) {
 					try {
 						Date start = formatter.parse(proj.getStart().toString());
+						if(start == null)
+							throw new NullPointerException();
 						java.sql.Date sqlstart = new java.sql.Date(start.getTime());
 						Date end = formatter.parse(proj.getEnd().toString());
 						java.sql.Date sqlend = new java.sql.Date(end.getTime());
-
-						populateProjects = "insert into Projects values (NULL, " + proj.getAxis() + ", "
-								+ proj.getObjective() + ", '" + proj.getAcronym().replace("'", "") + "', '"
-								+ proj.getLabel().replace("'", "") + "', '" + proj.getSummary().replace("'", "")
-								+ "', '" + proj.getCall().replace("'", "") + "', '" + sqlstart + "', '" + sqlend
-								+ "', '" + proj.getType() + "', " + proj.getErdf() + ", " + proj.getIpa() + ", "
-								+ proj.getAmount() + ", " + proj.getCofinancing() + ", '" + proj.getStatus() + "', '"
-								+ proj.getDeliverablesUrl() + "', '" + cat.getCollection() + "');";
+						System.out.println("QUERY: "+"ASSE "+proj.getAxis()+"\n"+proj.getObjective()+"\n" +proj.getAcronym().replace("'", "")+"\n"+
+								proj.getLabel().replace("'", "")+"\n"+proj.getSummary().replace("'", "")+"\n"+proj.getCall().replace("'", "") +"\n"
+								+sqlstart+"\n"+sqlend+"\n"+proj.getType()+"\n" + proj.getErdf()+"\n" +proj.getIpa()+"\n" +proj.getAmount() 
+								+"\n"+ proj.getCofinancing() +"\n"+ proj.getStatus() +"\n"+"URL "+ proj.getDeliverablesUrl() +"\n"+ "COLLEZIONE "+cat.getCollection());
+						populateProjects = "insert into Projects values (NULL, " 
+								+ proj.getAxis() + ", "
+								+ proj.getObjective() + ", '" 
+								+ proj.getAcronym().replace("'", "") + "', '"
+								+ proj.getLabel().replace("'", "") + "', '" 
+								+ proj.getSummary().replace("'", "")+ "', '" 
+								+ proj.getCall().replace("'", "") + "', '" 
+								+ sqlstart + "', '" 
+								+ sqlend+ "', '" 
+								+ proj.getType() + "', " 
+								+ proj.getErdf() + ", " 
+								+ proj.getIpa() + ", "
+								+ proj.getAmount() + ", " 
+								+ proj.getCofinancing() + ", '" 
+								+ proj.getStatus() + "', '"
+								+ proj.getDeliverablesUrl() + "', '" 
+								+ cat.getCollection() + "');";
 						st.executeUpdate(populateProjects);
-
+						
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
+					}catch(NullPointerException e) {
+						System.err.println("Error"+e.getMessage());
 					}
 					// aggiunta dati relativi ai partners
 					try {
+						if(proj.getPartners() == null) {
+							throw new NullPointerException();
+						}
 						for (Partner partner : proj.getPartners()) {
-							String checkDuplicatePartners = "select partner_name from partners where partner_name='"
+							
+							String checkDuplicatePartners = "select partner_name from partners where partner_name = '"
 									+ partner.getName().replace("'", "") + "';";
-
+							
 							if (st.executeQuery(checkDuplicatePartners).first() == false) {
+								System.out.println("entro nel if\n");
 								byte[] nuts3 = partner.getNUTS3().replace("'", "").getBytes("UTF-8");
 								String nuts3ciao = new String(nuts3, "UTF-8");
-								populatePartners = "insert into Partners values (NULL, " + partner.isLP() + ", '"
+								populatePartners = "insert into Partners values (NULL," 
+										+ partner.isLP() + ", '"
 										+ partner.getName().replace("'", "") + "', '"
 										+ partner.getNature().replace("'", "") + "', '"
-										+ partner.getCountry().replace("'", "") + "', '" + partner.getPostalCode()
-										+ "', '" + partner.getArea().replace("'", "") + "', '" + nuts3ciao + "', "
-										+ "NULL, NULL, " + partner.getErdf() + ", " + partner.getErdfContribution()
-										+ ", " + partner.getIpa() + ", " + partner.getIpaContribution() + ", "
+										+ partner.getCountry().replace("'", "") + "', '" 
+										+ partner.getPostalCode() + "', '" 
+										+ partner.getArea().replace("'", "") + "', '" 
+										+ nuts3ciao + "', "
+										+ partner.getErdf() + ", " 
+										+ partner.getErdfContribution()+ ", " 
+										+ partner.getIpa() + ", " 
+										+ partner.getIpaContribution() + ", "
 										+ partner.getAmount() + ");";
 								st.executeUpdate(populatePartners);
+								System.out.println(populatePartners);
 							}
 							// aggiunta dati relativi ai partner del progetto correntemente esaminato
 							String getProjectId = "select project_id from projects where project_acronym='"
 									+ proj.getAcronym().replace("'", "") + "';";
 							String getPartnerId = "select partner_id from partners where partner_name='"
 									+ partner.getName().replace("'", "") + "';";
-
+							
 							ResultSet ProjIdRes = st.executeQuery(getProjectId);
 
 							int projectId = 0;
@@ -127,7 +156,9 @@ public class Scraper {
 						}
 					} catch (SQLException e) {
 						System.out.println("errore:" + e.getMessage());
-					} // fine try-catch
+					}catch(NullPointerException e) {
+						System.err.println("Error"+e.getMessage());
+					}
 				}
 
 				// aggiunta dati relativi al deliverable
@@ -160,9 +191,10 @@ public class Scraper {
 					if (type != null) {
 						type = type.replace("'", "");
 					}
-					populateDeliverables = "insert ignore into Deliverables values (NULL, '" + deliv.getUrl() + "', '"
+					populateDeliverables = "insert into Deliverables values (NULL, '" + deliv.getUrl() + "', '"
 							+ title + "', " + delivdate + ", '" + description + "', '" + type + "', 0," + id + ");";
 					st.executeUpdate(populateDeliverables);
+					System.out.println(populateDeliverables);
 
 					int deliverable_id = 0;
 					String getDeliverableId = "select deliverable_id from deliverables where deliverable_title='"
@@ -175,7 +207,8 @@ public class Scraper {
 					if (deliv.getKeywords() != null) {
 						for (String keyword : deliv.getKeywords()) {
 							String insertDeliverableKeywords = "insert ignore into DeliverableKeywords values ("
-									+ deliverable_id + ", '" + keyword + "');";
+									+ deliverable_id + ", '" 
+									+ keyword + "');";
 							st.executeUpdate(insertDeliverableKeywords);
 						}
 					}
@@ -183,8 +216,9 @@ public class Scraper {
 					if (targets != null) {
 						for (String target : targets) {
 
-							populateTargets = "insert ignore into DeliverableTargets values (" + deliverable_id + ", '"
-									+ target + "');";
+							populateTargets = "insert ignore into DeliverableTargets values (" 
+							+ deliverable_id + ", '"
+							+ target + "');";
 							st.executeUpdate(populateTargets);
 						}
 					}
@@ -209,17 +243,19 @@ public class Scraper {
 		try {
 
 			projects = Jsoup.connect("https://interreg-med.eu/projects-results/our-projects").timeout(0).get();
+//			System.out.println(projects);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		Elements downloadLinks = projects.select(".download-link");
+		Elements downloadLinks = projects.select("a[href*=/Projects_results/]");
+		System.out.println("links: " + downloadLinks);
 		String projectFileUrl = null;
 		String beneficiariesFileUrl = null;
-		String pathProjects = "projects.xlsx";
+		String pathProjects = "liste_projets_english_2020.02.18.xlsx";
 		Date projectDate = null;
-		String pathPartners = "partners.xlsx";
+		String pathPartners = "liste_beneficiaires_english_2020.02.18.xlsx";
 		Date beneficiariesDate = null;
 
 		for (Element l : downloadLinks) {
@@ -255,14 +291,12 @@ public class Scraper {
 			}
 
 		}
-
 		// download the files
 		downloadXlsFile(beneficiariesFileUrl, beneficiariesDate, pathPartners);
 		downloadXlsFile(projectFileUrl, projectDate, pathProjects);
 
 		// parse the files
 		Map<String, Project> projectsMetadata = XlsParser.parseProjects(pathProjects, pathPartners);
-
 		// parse the form field to find all the category name
 		FormElement form = (FormElement) projects.selectFirst("form[name=\"search\"]");
 		Element them = form.selectFirst("select");
@@ -287,10 +321,11 @@ public class Scraper {
 			// if (cat.getCollection().toLowerCase().equals("blue growth")) {
 			// for each category download the file and the metadata
 			System.out.println("######" + cat.getCollection().toUpperCase() + "######");
-			// cat.parseCategory(projectsMetadata);
-			// cat.writeMetadata();
+			cat.parseCategory(projectsMetadata);
+			cat.writeMetadata();
 			Category newcat = cat.readMetadata();// Inutle se il caricamento del db avviene contestualmente al
 													// crawler.
+			System.out.println("NEWCAT: " + newcat);
 			if (newcat != null) {
 
 				try {
@@ -317,14 +352,7 @@ public class Scraper {
 	private static void downloadXlsFile(String fileUrl, Date date, String path) {
 
 		File filePartners = new File(path);
-		long beneficiariesOldDateL = filePartners.lastModified();
-
-		// if the file doesn't exist (lastmodified == 0L) the date is null
-		Date beneficiariesOldDate = (beneficiariesOldDateL == 0L) ? null : new Date(beneficiariesOldDateL);
-
-		// download only the url is not null and the old file is not up to date
-		if (fileUrl != null && beneficiariesOldDate != null && date.after(beneficiariesOldDate)) {
-
+		
 			URL urlFPartners = null;
 			try {
 				urlFPartners = new URL(fileUrl);
@@ -342,7 +370,7 @@ public class Scraper {
 				}
 			}
 
-		}
+		
 	}
 
 }

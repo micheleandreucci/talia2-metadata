@@ -14,10 +14,13 @@ import java.util.Locale;
 
 import databaseObjects.*;
 
+/*
+ * gestire la connessione con la base di dati
+ */
 public class DatabaseInterface {
 	private Connection conn;
 	private Statement stat;
-	
+
 	public DatabaseInterface() throws SQLException {
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
@@ -32,14 +35,14 @@ public class DatabaseInterface {
 		stat = (Statement) conn.createStatement();
 
 	}
-	
-	public void loadDeliverableData(String url, String title, Date date, 
-			String description, String type, String project_acronym) throws SQLException, ParseException {
-		
+
+	public void loadDeliverableData(String url, String title, Date date, String description, String type,
+			String project_acronym) throws SQLException, ParseException {
+
 		DateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
 		int project_id = 0;
 		String delivdate = "";
-		
+
 		if (date != null) {
 			String string_date = date.toString();
 			Date formatted_date = formatter.parse(string_date);
@@ -47,50 +50,49 @@ public class DatabaseInterface {
 		} else {
 			delivdate = "null";
 		}
-		
-		ResultSet result = stat.executeQuery(
-				"select project_id from projects where project_acronym='" + project_acronym + "';");
-		
+
+		ResultSet result = stat
+				.executeQuery("select project_id from projects where project_acronym='" + project_acronym + "';");
+
 		if (result.next()) {
 			project_id = result.getInt(1);
 		}
-		
+
 		if (title != null) {
 			title = title.replace("'", "");
 		}
-		
+
 		if (description != null) {
 			description = description.replace("'", "");
 		}
-		
+
 		if (type != null) {
 			type = type.replace("'", "");
 		}
-		
-		String insertDeliverable = "insert ignore into Deliverables values (NULL, '" + url + "', '"
-				+ title + "', " + delivdate + ", '" + description + "', '" + type + "', 0," + project_id + ");";
-		
+
+		String insertDeliverable = "insert ignore into Deliverables values (NULL, '" + url + "', '" + title + "', "
+				+ delivdate + ", '" + description + "', '" + type + "', 0," + project_id + ");";
+
 		stat.executeUpdate(insertDeliverable);
 	};
-	
+
 	public void loadCommunityData(String community) throws SQLException {
 		String insertCommunity = "INSERT ignore INTO communities VALUES('" + community + "');";
 		stat.executeUpdate(insertCommunity);
 	};
-	
-	public void loadProjectData(int axis, int objective, String acronym, String label, String summary, 
-			String call, Date start_date, Date end_date, String type, double erdf, double ipa_funds, 
-			double project_amount, double cofinancing_rate, String project_status, String url, String community) throws SQLException {
-		
+
+	public void loadProjectData(int axis, int objective, String acronym, String label, String summary, String call,
+			Date start_date, Date end_date, String type, double erdf, double ipa_funds, double project_amount,
+			double cofinancing_rate, String project_status, String url, String community) throws SQLException {
+
 		DateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
-		
-		if (acronym != null) { 
+
+		if (acronym != null) {
 			acronym = acronym.replace("'", "");
 		}
-		
-		//controllo progetto già presente
-		String checkDuplicateProject = "select project_acronym from projects where project_acronym='"
-				+ acronym + "';";
+
+		// controllo progetto già presente
+		String checkDuplicateProject = "select project_acronym from projects where project_acronym='" + acronym + "';";
 
 		if (stat.executeQuery(checkDuplicateProject).first() == false) {
 			// aggiunta dati relativi al progetto
@@ -99,8 +101,7 @@ public class DatabaseInterface {
 				java.sql.Date sqlstart = new java.sql.Date(start.getTime());
 				Date end = formatter.parse(end_date.toString());
 				java.sql.Date sqlend = new java.sql.Date(end.getTime());
-				
-				
+
 				if (label != null) {
 					label = label.replace("'", "");
 				}
@@ -108,18 +109,15 @@ public class DatabaseInterface {
 				if (summary != null) {
 					summary = summary.replace("'", "");
 				}
-				
+
 				if (call != null) {
 					call = call.replace("'", "");
 				}
-				
-				String populateProjects = "insert into Projects values (NULL, " + axis + ", "
-						+ objective + ", '" + acronym + "', '"
-						+ label + "', '" + summary
-						+ "', '" + call + "', '" + sqlstart + "', '" + sqlend
-						+ "', '" + type + "', " + erdf + ", " + ipa_funds + ", "
-						+ project_amount + ", " + cofinancing_rate + ", '" + project_status
-						+ "', '" + url + "', '" + community + "');";
+
+				String populateProjects = "insert into Projects values (NULL, " + axis + ", " + objective + ", '"
+						+ acronym + "', '" + label + "', '" + summary + "', '" + call + "', '" + sqlstart + "', '"
+						+ sqlend + "', '" + type + "', " + erdf + ", " + ipa_funds + ", " + project_amount + ", "
+						+ cofinancing_rate + ", '" + project_status + "', '" + url + "', '" + community + "');";
 
 				stat.executeUpdate(populateProjects);
 
@@ -133,139 +131,137 @@ public class DatabaseInterface {
 	public void loadPartnerData(Boolean lp, String name, String nature, String country, String postal_code, String area,
 			String nuts3, String city, String address, double erdf, double erdf_contribution, double ipa_funds,
 			double ipa_contribution, double amount) throws SQLException, UnsupportedEncodingException {
-		
-		String checkDuplicatePartners = "select partner_name from partners where partner_name='"
-				+ name.replace("'", "") + "';";
+
+		String checkDuplicatePartners = "select partner_name from partners where partner_name='" + name.replace("'", "")
+				+ "';";
 
 		if (stat.executeQuery(checkDuplicatePartners).first() == false) {
 			byte[] byte_nuts3;
-			
-			if(nuts3 != null) {
+
+			if (nuts3 != null) {
 				byte_nuts3 = nuts3.replace("'", "").getBytes("UTF-8");
 				nuts3 = new String(byte_nuts3, "UTF-8");
 			}
-			
+
 			if (country != null) {
 				country = country.replace("'", "");
 			}
-			
+
 			if (name != null) {
 				name = name.replace("'", "");
 			}
-			
+
 			if (nature != null) {
 				nature = nature.replace("'", "");
 			}
-			
+
 			if (area != null) {
 				area = area.replace("'", "");
 			}
-			
-			String insertPartner = "insert into Partners values (NULL, " + lp + ", '"
-					+ name + "', '"
-					+ nature + "', '"
-					+ country + "', '" + postal_code
-					+ "', '" + area + "', '" + nuts3 + "', "
-					+ "NULL, NULL, " + erdf + ", " + erdf_contribution
-					+ ", " + ipa_funds + ", " + ipa_contribution + ", "
-					+ amount + ");";
-			
+
+			String insertPartner = "insert into Partners values (NULL, " + lp + ", '" + name + "', '" + nature + "', '"
+					+ country + "', '" + postal_code + "', '" + area + "', '" + nuts3 + "', " + "NULL, NULL, " + erdf
+					+ ", " + erdf_contribution + ", " + ipa_funds + ", " + ipa_contribution + ", " + amount + ");";
+
 			stat.executeUpdate(insertPartner);
 		}
 
 	}
-	
-	public void loadDeliverableKeywords(String deliverable_title, List<String> keywords) throws SQLException, UnknownDeliverableException {
-		
+
+	public void loadDeliverableKeywords(String deliverable_title, List<String> keywords)
+			throws SQLException, UnknownDeliverableException {
+
 		int deliverable_id;
-		
+
 		String getDeliverableId = "select deliverable_id from deliverables where deliverable_title='"
 				+ deliverable_title.replace("'", "") + "';";
 		ResultSet deliverableID = stat.executeQuery(getDeliverableId);
 
-		if (deliverableID.next()){
+		if (deliverableID.next()) {
 			deliverable_id = deliverableID.getInt(1);
-		}
-		else {
+		} else {
 			throw new UnknownDeliverableException();
 		}
-		
+
 		for (String keyword : keywords) {
-			String insertDeliverableKeyword = "insert ignore into DeliverableKeywords values ("
-			+ deliverable_id + ", '" +  keyword + "');";
+			String insertDeliverableKeyword = "insert ignore into DeliverableKeywords values (" + deliverable_id + ", '"
+					+ keyword + "');";
 			stat.executeUpdate(insertDeliverableKeyword);
-			}
+		}
 	};
-	
-	public void loadDeliverableTargets(String deliverable_title, List<String> targets) throws SQLException, UnknownDeliverableException {
-		
+
+	public void loadDeliverableTargets(String deliverable_title, List<String> targets)
+			throws SQLException, UnknownDeliverableException {
+
 		int deliverable_id;
-				
+
 		String getDeliverableId = "select deliverable_id from deliverables where deliverable_title='"
 				+ deliverable_title.replace("'", "") + "';";
 		ResultSet deliverableID = stat.executeQuery(getDeliverableId);
 
-		if (deliverableID.next()){
+		if (deliverableID.next()) {
 			deliverable_id = deliverableID.getInt(1);
-		}
-		else {
+		} else {
 			throw new UnknownDeliverableException();
 		}
-		
+
 		for (String target : targets) {
-			String insertDeliverableTargets = "insert ignore into DeliverableTargets values ("
-			+ deliverable_id + ", '" +  target + "');";
+			String insertDeliverableTargets = "insert ignore into DeliverableTargets values (" + deliverable_id + ", '"
+					+ target + "');";
 			stat.executeUpdate(insertDeliverableTargets);
-			}
+		}
 	};
-	
-	public void loadStakeholderData(int stakeholder_id, String organization_name, String stakeholder_nature, String stakeholder_country, String postal_code, String area,
-			String nuts3, String stakeholder_city, String stakeholder_address, String web_address, String email) throws SQLException {
-		
-		String insertStakeholder = "insert into Stakeholders values (" + stakeholder_id + ", '" + organization_name + "', '" + stakeholder_nature + "', '" + stakeholder_country +
-				"', '" + postal_code + "', '" + nuts3 + "', '" + stakeholder_city + "', '" + stakeholder_address + "', '" + web_address + "', '" + email + "');";
+
+	public void loadStakeholderData(int stakeholder_id, String organization_name, String stakeholder_nature,
+			String stakeholder_country, String postal_code, String area, String nuts3, String stakeholder_city,
+			String stakeholder_address, String web_address, String email) throws SQLException {
+
+		String insertStakeholder = "insert into Stakeholders values (" + stakeholder_id + ", '" + organization_name
+				+ "', '" + stakeholder_nature + "', '" + stakeholder_country + "', '" + postal_code + "', '" + nuts3
+				+ "', '" + stakeholder_city + "', '" + stakeholder_address + "', '" + web_address + "', '" + email
+				+ "');";
 		stat.executeUpdate(insertStakeholder);
 	};
-	
+
 	public void loadProjectPartner(String project_acronym, String partner_name) throws SQLException {
 		project_acronym = project_acronym.replace("'", "");
 		partner_name = partner_name.replace("'", "");
-		
-		String getProjectId = "select project_id from projects where project_acronym='"
-				+ project_acronym + "';";
-		String getPartnerId = "select partner_id from partners where partner_name='"
-				+ partner_name + "';";
+
+		String getProjectId = "select project_id from projects where project_acronym='" + project_acronym + "';";
+		String getPartnerId = "select partner_id from partners where partner_name='" + partner_name + "';";
 
 		ResultSet ProjIdRes = stat.executeQuery(getProjectId);
 		int projectId = 0;
 		if (ProjIdRes.next()) {
 			projectId = ProjIdRes.getInt(1);
 		}
-	
+
 		ResultSet PartIdRes = stat.executeQuery(getPartnerId);
 		int partnerId = 0;
 		if (PartIdRes.next()) {
 			partnerId = PartIdRes.getInt(1);
 		}
-		
-		String insertProjectPartner = "insert ignore into projectPartners values (" + projectId + ", '"
-				+ partnerId + "');";
+
+		String insertProjectPartner = "insert ignore into projectPartners values (" + projectId + ", '" + partnerId
+				+ "');";
 		stat.executeUpdate(insertProjectPartner);
 	};
-	
-	public void loadProjectStakeholder() {};
-	
-	public void loadStakeholderKeywords() {};
-	
+
+	public void loadProjectStakeholder() {
+	};
+
+	public void loadStakeholderKeywords() {
+	};
+
 	public DeliverableDB getDeliverableData(int docid) throws SQLException {
-		
+
 		String selectDeliverable = "select * from Deliverables where deliverable_id = " + docid + ";";
-		
+
 		ResultSet deliverable_rs = stat.executeQuery(selectDeliverable);
 		deliverable_rs.next();
-		
+
 		DeliverableDB deliverable_object = new DeliverableDB();
-		
+
 		deliverable_object.setId(deliverable_rs.getInt(0));
 		deliverable_object.setUrl(deliverable_rs.getString(1));
 		deliverable_object.setTitle(deliverable_rs.getString(2));
@@ -274,29 +270,37 @@ public class DatabaseInterface {
 		deliverable_object.setType(deliverable_rs.getString(5));
 		deliverable_object.setBudget(deliverable_rs.getFloat(6));
 		deliverable_object.setProjectId(deliverable_rs.getInt(7));
-		
+
 		return deliverable_object;
 	};
-	
-	public ProjectDB getProjectData (int docid) throws SQLException {
-		
-		String selectProjectId = "select deliverable_project_id from Deliverables where deliverable_id = " + docid + ";";
-		
+
+	/*
+	 * Restituisce il record nella tabella del database del progetto corrispondente
+	 * al Deliverable identificato dal docid dato
+	 * 
+	 * @param docid numbero usato per identificare ciascun deliverable nella tabella
+	 * del database dei Deliverable
+	 */
+	public ProjectDB getProjectData(int docid) throws SQLException {
+
+		String selectProjectId = "select deliverable_project_id from Deliverables where deliverable_id = " + docid
+				+ ";";
+
 		ResultSet projectId_rs = stat.executeQuery(selectProjectId);
-		
+
 		int project_id = 0;
-		
+
 		if (projectId_rs.next()) {
 			project_id = projectId_rs.getInt(1);
 		}
-		
+
 		String selectProject = "select * from Projects where project_id = " + project_id + ";";
-		
+
 		ResultSet project_rs = stat.executeQuery(selectProject);
 		project_rs.next();
-		
+
 		ProjectDB Project = new ProjectDB();
-		
+
 		Project.setProject_id(project_id);
 		Project.setProject_axis(project_rs.getInt("project_axis"));
 		Project.setProject_objective(project_rs.getInt("project_objective"));
@@ -314,40 +318,49 @@ public class DatabaseInterface {
 		Project.setProject_status(project_rs.getString("project_status"));
 		Project.setProject_deliverables_url(project_rs.getString("project_deliverables_url"));
 		Project.setProject_community(project_rs.getString("project_community"));
-		
+
 		return Project;
 	}
 
-	public List<PartnerDB> getProjectPartners (int docid) throws SQLException {
+	/*
+	 * Il metodo restituisce una stringa che elenca tutti i Partner coinvolti nel
+	 * Progetto a cui appartiene il deliverable identificato dal dato docid
+	 * 
+	 * @param docid numbero usato per identificare ciascun deliverable nella tabella
+	 * del database dei Deliverable
+	 */
+	public List<PartnerDB> getProjectPartners(int docid) throws SQLException {
 		List<Integer> partnersList = new ArrayList<Integer>();
-		
-		String selectProjectId = "select deliverable_project_id from Deliverables where deliverable_id = " + docid + ";";
+
+		String selectProjectId = "select deliverable_project_id from Deliverables where deliverable_id = " + docid
+				+ ";";
 		ResultSet projectId_rs = stat.executeQuery(selectProjectId);
-		
+
 		int project_id = 0;
-		
+
 		if (projectId_rs.next()) {
 			project_id = projectId_rs.getInt(1);
 		}
-		
-		String selectProjectPartners = "select project_partner_id from Project_partners where project_id =" + project_id +";";
+
+		String selectProjectPartners = "select project_partner_id from Project_partners where project_id =" + project_id
+				+ ";";
 		ResultSet projectPartners_rs = stat.executeQuery(selectProjectPartners);
-		
-		while(projectPartners_rs.next()) {
+
+		while (projectPartners_rs.next()) {
 			partnersList.add(projectPartners_rs.getInt("project_partner_id"));
 		}
-		
+
 		List<PartnerDB> PartnersList = new ArrayList<PartnerDB>();
 		PartnerDB tempPartner = new PartnerDB();
-		
+
 		String selectPartner = "";
-		
+
 		for (Integer partner_id : partnersList) {
-			
+
 			selectPartner = "select * from Partners where partner_id = " + partner_id + ";";
 			ResultSet partner_rs = stat.executeQuery(selectPartner);
 			partner_rs.next();
-			
+
 			tempPartner.setPartner_id(partner_rs.getInt("partner_id"));
 			tempPartner.setIs_lead_partner(partner_rs.getBoolean("is_lead_partner"));
 			tempPartner.setPartner_name(partner_rs.getString("partner_name"));
@@ -363,38 +376,38 @@ public class DatabaseInterface {
 			tempPartner.setIpa_funds(partner_rs.getDouble("ipa_funds"));
 			tempPartner.setIpaContribution(partner_rs.getDouble("ipaContribution"));
 			tempPartner.setPartner_amount(partner_rs.getDouble("partner_amount"));
-			
+
 			PartnersList.add(tempPartner);
 		}
-		
+
 		return PartnersList;
 	}
 
-	public List<String> getDeliverableKeywords (int docid) throws SQLException {
-		
+	public List<String> getDeliverableKeywords(int docid) throws SQLException {
+
 		String selectKeywords = "select related_keyword from DeliverableKeywords where deliverable_id = " + docid + ";";
-		ResultSet keywords_rs = stat.executeQuery(selectKeywords);	
+		ResultSet keywords_rs = stat.executeQuery(selectKeywords);
 
 		List<String> Keywords = new ArrayList<String>();
-		
-		while (keywords_rs.next()) { 
+
+		while (keywords_rs.next()) {
 			Keywords.add(keywords_rs.getString("related_keyword"));
 		}
-		
+
 		return Keywords;
 	}
-	
-	public List<String> getDeliverableTargets (int docid) throws SQLException {
-		
+
+	public List<String> getDeliverableTargets(int docid) throws SQLException {
+
 		String selectTargets = "select related_keyword from DeliverableTargets where deliverable_id = " + docid + ";";
-		ResultSet targets_rs = stat.executeQuery(selectTargets);	
+		ResultSet targets_rs = stat.executeQuery(selectTargets);
 
 		List<String> Targets = new ArrayList<String>();
-		
-		while (targets_rs.next()) { 
+
+		while (targets_rs.next()) {
 			Targets.add(targets_rs.getString("deliverable_target"));
 		}
-		
+
 		return Targets;
 	}
 }

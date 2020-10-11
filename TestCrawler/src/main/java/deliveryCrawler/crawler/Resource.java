@@ -1,27 +1,26 @@
 package deliveryCrawler.crawler;
 
-
 public class Resource {
 
 	private String name;
 	private Delivery delivery;
-	
+
 	public Resource() {
-		//DEFAULT CONSTRUCTOR
+		// DEFAULT CONSTRUCTOR
 	}
-	
+
 	public Resource(String name) {
-		
+
 		this.name = name;
 	}
 
 	public Delivery getDelivery() {
-		
+
 		return delivery;
 	}
 
 	public void setDelivery(Delivery delivery) {
-		
+
 		this.delivery = delivery;
 	}
 
@@ -31,7 +30,7 @@ public class Resource {
 	}
 
 	public String getName() {
-		
+
 		return this.name;
 	}
 

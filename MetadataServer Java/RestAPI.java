@@ -22,63 +22,77 @@ import databaseObjects.*;
 
 //@Path("v1")
 public class RestAPI {
-	
+	/*
+	 * Carica i dati salvati nel file json nel database
+	 */
 	@PUT
 	@Path("loadJsonData")
 	public Response loadJsonData(final String json_string) {
 		Json_Parser jParser = new Json_Parser();
-		
-		DocumentListJson documents_json = jParser.parseJson(json_string); //parse Json string into DocumentListJson object
-		
+
+		DocumentListJson documents_json = jParser.parseJson(json_string); // parse Json string into DocumentListJson
+																			// object
 		multipleDBRequest DBLoader;
-		
+
 		try {
-			
+
 			DBLoader = new multipleDBRequest();
-			
-			DBLoader.loadAllJsonData(documents_json); //send multiple requests to DB exploring all contents of DocumentListJson object
-		
+
+			DBLoader.loadAllJsonData(documents_json); // send multiple requests to DB exploring all contents of
+														// DocumentListJson object
+
 		} catch (SQLException e) {
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type("text/plain").build();
-		
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type("text/plain")
+					.build();
+
 		} catch (NumberFormatException e) {
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type("text/plain").build();
-		
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type("text/plain")
+					.build();
+
 		} catch (UnsupportedEncodingException e) {
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type("text/plain").build();
-		
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type("text/plain")
+					.build();
+
 		} catch (ParseException e) {
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type("text/plain").build();
-		
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type("text/plain")
+					.build();
+
 		} catch (UnknownDeliverableException e) {
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type("text/plain").build();
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type("text/plain")
+					.build();
 		}
-		
+
 		return Response.ok().build();
 	}
-	
+
+	/*
+	 * Restituisce il record nella tabella del database Deliverable corrispondente
+	 * al dato docid
+	 */
 	@GET
 	@Path("getDeliverableData")
 	public Response getDeliverableData(final int docid) {
-		
+
 		DeliverableDB deliverableData = new DeliverableDB();
 		ObjectMapper mapper = new ObjectMapper();
-		
+
 		try {
-		
+
 			DatabaseInterface db = new DatabaseInterface();
-			
+
 			deliverableData = db.getDeliverableData(docid);
-			
+
 			String deliverableJson = mapper.writeValueAsString(deliverableData);
-			
+
 			return Response.ok(deliverableJson).build();
-			
+
 		} catch (SQLException e) {
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type("text/plain").build();
-		
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type("text/plain")
+					.build();
+
 		} catch (JsonProcessingException e) {
-			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type("text/plain").build();
-		}	
+			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).type("text/plain")
+					.build();
+		}
 	}
 }

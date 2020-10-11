@@ -25,8 +25,8 @@ public class Models implements Serializable {
 
 	@SuppressWarnings("unchecked")
 	public void loadModels() throws ClassNotFoundException, IOException {
-		File filepath=new File("saved.txt");
-		if(filepath.exists()) {
+		File filepath = new File("saved.txt");
+		if (filepath.exists()) {
 			FileInputStream inFile = new FileInputStream(filepath);
 			ObjectInputStream in = new ObjectInputStream(inFile);
 			this.matrixModels = (ArrayList<Model>) in.readObject();

@@ -1,4 +1,3 @@
-
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
@@ -77,26 +76,26 @@ public class Search extends HttpServlet {
 			List<Result> results = res.getResults();
 			// create new list with detail of results (metadata)
 			List<DetailedResult> detResults = new LinkedList<DetailedResult>();
-			
+
 			String requestSimWords = path + "/simw/" + collection + "/" + "10" + "/" + query;
 			requestSimWords = requestSimWords.replace(" ", "%20");
 			String Sim = getResponse(requestSimWords);
-			
+
 			String[] vetSim = Sim.split("#sep#");
-			
+
 			for (int k = 0; k < vetSim.length; k++) {
-				String[] temp=vetSim[k].split("\t");
-				if(Double.parseDouble(temp[1])<1) {
+				String[] temp = vetSim[k].split("\t");
+				if (Double.parseDouble(temp[1]) < 1) {
 					vetSim[k] = vetSim[k].replaceAll("[0-9]+", "");
 					vetSim[k] = vetSim[k].replace('.', ' ');
-				}else {
-					List<String> vetSim1 =new ArrayList<>(java.util.Arrays.asList(vetSim));
+				} else {
+					List<String> vetSim1 = new ArrayList<>(java.util.Arrays.asList(vetSim));
 					vetSim1.remove(vetSim[k]);
-					vetSim=(String[]) vetSim1.toArray(new String[vetSim1.size()]);
+					vetSim = (String[]) vetSim1.toArray(new String[vetSim1.size()]);
 					k--;
 				}
 			}
-			
+
 			for (Result r : results) {
 				r.setScoreperc(r.getScore());
 				String id1 = r.getId();
@@ -108,50 +107,48 @@ public class Search extends HttpServlet {
 
 				// request metadata of the current result
 				String requestURL2 = path + "/getDeliverableID/" + URLEncoder.encode(id, "UTF-8");
-				
+
 				String delId = getResponse(requestURL2);
 				if (Integer.parseInt(delId) > 0) {
 					Metadata met = new Metadata();
-			
 
 					met.setsimWord(vetSim);
-					
+
 					String delData = path + "/getDeliverablePrimaryData/" + URLEncoder.encode(delId, "UTF-8");
 					String deliverablesdelData = getResponse(delData);
-					String[] splitPrimary=deliverablesdelData.split("---");
+					String[] splitPrimary = deliverablesdelData.split("---");
 					met.setDelDescription(splitPrimary[0]);
 					met.setUrl(splitPrimary[1]);
 					met.setProjName(splitPrimary[2]);
-					
+
 					Double double_proj_budget = Double.parseDouble(splitPrimary[3]);
 					DecimalFormat df = new DecimalFormat("###,###,###");
-					String proj_budget=df.format(double_proj_budget);
-					
+					String proj_budget = df.format(double_proj_budget);
+
 					met.setProjectBudget(proj_budget);
-				
 
 					String data = path + "/getDeliverableSearchData/" + URLEncoder.encode(delId, "UTF-8");
 					String deliverablesData = getResponse(data);
-					String[] split=deliverablesData.split("---");
+					String[] split = deliverablesData.split("---");
 					met.setDelDate(split[0]);
-					
+
 					Double double_del_budget = Double.parseDouble(split[1]);
-					String del_budget=df.format(double_del_budget);
-					
+					String del_budget = df.format(double_del_budget);
+
 					met.setDeliverableBudget(del_budget);
-					String[] keyWords=split[2].split(", ");
+					String[] keyWords = split[2].split(", ");
 					List<String> lkeywords = new ArrayList<String>();
-					for(int o=0;o<keyWords.length;o++) {
+					for (int o = 0; o < keyWords.length; o++) {
 						lkeywords.add(keyWords[o]);
-						}
+					}
 					met.setDelKeywords(lkeywords);
-					String[] targets=split[3].split(", ");
+					String[] targets = split[3].split(", ");
 					List<String> ltargets = new ArrayList<String>();
-					for(int o=0;o<targets.length;o++) {
+					for (int o = 0; o < targets.length; o++) {
 						ltargets.add(targets[o]);
-						}
+					}
 					met.setDelTargets(ltargets);
-					
+
 					String projectPartners = path + "/getProjectPartners/" + URLEncoder.encode(delId, "UTF-8");
 
 					String partners = getResponse(projectPartners);
@@ -166,10 +163,10 @@ public class Search extends HttpServlet {
 						p.setLead(partnerAttr[1]);
 						p.setCountry(partnerAttr[2]);
 						Double double_budget = Double.parseDouble(partnerAttr[3]);
-						String budget=df.format(double_budget);
+						String budget = df.format(double_budget);
 
 						p.setBudget(budget);
-						
+
 						lpartners.add(p);
 					}
 					met.setPartners(lpartners);

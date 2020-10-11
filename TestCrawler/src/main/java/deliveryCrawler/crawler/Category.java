@@ -3,6 +3,7 @@ package deliveryCrawler.crawler;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -70,15 +71,15 @@ public class Category {
 	private String[] formats = { "zip", "pdf" };
 
 	public Category() {
-		//DEFAULT CONSTRUCTOR
+		// DEFAULT CONSTRUCTOR
 	}
-	
+
 	public Category(String name, String number) {
 
 		this.collection = name;
 		this.number = number;
 		this.path = name.trim();
-		this.metadataPath = path + "/‎" + name + ".json";
+		this.metadataPath = path + "/" + name + ".json";
 		this.lastMetadataFile = metadataLastModified();
 	}
 
@@ -390,7 +391,7 @@ public class Category {
 
 				} else {
 
-					System.out.println("No delivery founds");
+					System.out.println("No delivery found");
 				}
 
 			} else {
@@ -537,7 +538,7 @@ public class Category {
 
 				// create a resource with metadata
 				String fUrl = fileEl.child(0).absUrl("href");
-				
+
 				System.out.println("Url: " + fUrl + "\n");
 				// download the resource
 				List<String> fileNames = downloadResource(fUrl, path, 3, this.formats);
@@ -563,7 +564,7 @@ public class Category {
 
 		ObjectMapper mapper = new ObjectMapper();
 		try {
-			mapper.writeValue(new File(path + "/‎" + collection + ".json"), this);
+			mapper.writeValue(new File(path + "/" + collection + ".json"), this);
 		} catch (JsonGenerationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -575,15 +576,16 @@ public class Category {
 		}
 
 	}
-	
+
 	/**
 	 * testing deserialization on json files
 	 */
 	public Category readMetadata() {
 		ObjectMapper mapper = new ObjectMapper();
+		System.out.println("PATH: " + path + " " + collection);
 		try {
-			return mapper.readValue(new File(path + "/‎" + collection + ".json"), Category.class);
-			//System.out.println(catnew.getDocuments().get(0).getName());
+			return mapper.readValue(new File(path + "/" + collection + ".json"), Category.class);
+			// System.out.println(catnew.getDocuments().get(0).getName());
 		} catch (JsonGenerationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -592,10 +594,11 @@ public class Category {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.err.println("file non trovato");
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Retrieve the date of last modify of the metadata file if there is
 	 * 
