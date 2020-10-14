@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -21,6 +24,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
@@ -69,66 +73,54 @@ public class Scraper {
 				if (st.executeQuery(checkDuplicateProjects).first() == false) {
 					try {
 						Date start = formatter.parse(proj.getStart().toString());
-						if(start == null)
+						if (start == null)
 							throw new NullPointerException();
 						java.sql.Date sqlstart = new java.sql.Date(start.getTime());
 						Date end = formatter.parse(proj.getEnd().toString());
 						java.sql.Date sqlend = new java.sql.Date(end.getTime());
-						System.out.println("QUERY: "+"ASSE "+proj.getAxis()+"\n"+proj.getObjective()+"\n" +proj.getAcronym().replace("'", "")+"\n"+
-								proj.getLabel().replace("'", "")+"\n"+proj.getSummary().replace("'", "")+"\n"+proj.getCall().replace("'", "") +"\n"
-								+sqlstart+"\n"+sqlend+"\n"+proj.getType()+"\n" + proj.getErdf()+"\n" +proj.getIpa()+"\n" +proj.getAmount() 
-								+"\n"+ proj.getCofinancing() +"\n"+ proj.getStatus() +"\n"+"URL "+ proj.getDeliverablesUrl() +"\n"+ "COLLEZIONE "+cat.getCollection());
-						populateProjects = "insert into Projects values (NULL, " 
-								+ proj.getAxis() + ", "
-								+ proj.getObjective() + ", '" 
-								+ proj.getAcronym().replace("'", "") + "', '"
-								+ proj.getLabel().replace("'", "") + "', '" 
-								+ proj.getSummary().replace("'", "")+ "', '" 
-								+ proj.getCall().replace("'", "") + "', '" 
-								+ sqlstart + "', '" 
-								+ sqlend+ "', '" 
-								+ proj.getType() + "', " 
-								+ proj.getErdf() + ", " 
-								+ proj.getIpa() + ", "
-								+ proj.getAmount() + ", " 
-								+ proj.getCofinancing() + ", '" 
-								+ proj.getStatus() + "', '"
-								+ proj.getDeliverablesUrl() + "', '" 
-								+ cat.getCollection() + "');";
+						System.out.println("QUERY: " + "ASSE " + proj.getAxis() + "\n" + proj.getObjective() + "\n"
+								+ proj.getAcronym().replace("'", "") + "\n" + proj.getLabel().replace("'", "") + "\n"
+								+ proj.getSummary().replace("'", "") + "\n" + proj.getCall().replace("'", "") + "\n"
+								+ sqlstart + "\n" + sqlend + "\n" + proj.getType() + "\n" + proj.getErdf() + "\n"
+								+ proj.getIpa() + "\n" + proj.getAmount() + "\n" + proj.getCofinancing() + "\n"
+								+ proj.getStatus() + "\n" + "URL " + proj.getDeliverablesUrl() + "\n" + "COLLEZIONE "
+								+ cat.getCollection());
+						populateProjects = "insert into Projects values (NULL, " + proj.getAxis() + ", "
+								+ proj.getObjective() + ", '" + proj.getAcronym().replace("'", "") + "', '"
+								+ proj.getLabel().replace("'", "") + "', '" + proj.getSummary().replace("'", "")
+								+ "', '" + proj.getCall().replace("'", "") + "', '" + sqlstart + "', '" + sqlend
+								+ "', '" + proj.getType() + "', " + proj.getErdf() + ", " + proj.getIpa() + ", "
+								+ proj.getAmount() + ", " + proj.getCofinancing() + ", '" + proj.getStatus() + "', '"
+								+ proj.getDeliverablesUrl() + "', '" + cat.getCollection() + "');";
 						st.executeUpdate(populateProjects);
-						
+
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
-					}catch(NullPointerException e) {
-						System.err.println("Error"+e.getMessage());
+					} catch (NullPointerException e) {
+						System.err.println("Error" + e.getMessage());
 					}
 					// aggiunta dati relativi ai partners
 					try {
-						if(proj.getPartners() == null) {
+						if (proj.getPartners() == null) {
 							throw new NullPointerException();
 						}
 						for (Partner partner : proj.getPartners()) {
-							
+
 							String checkDuplicatePartners = "select partner_name from partners where partner_name = '"
 									+ partner.getName().replace("'", "") + "';";
-							
+
 							if (st.executeQuery(checkDuplicatePartners).first() == false) {
 								System.out.println("entro nel if\n");
 								byte[] nuts3 = partner.getNUTS3().replace("'", "").getBytes("UTF-8");
 								String nuts3ciao = new String(nuts3, "UTF-8");
-								populatePartners = "insert into Partners values (NULL," 
-										+ partner.isLP() + ", '"
+								populatePartners = "insert into Partners values (NULL," + partner.isLP() + ", '"
 										+ partner.getName().replace("'", "") + "', '"
 										+ partner.getNature().replace("'", "") + "', '"
-										+ partner.getCountry().replace("'", "") + "', '" 
-										+ partner.getPostalCode() + "', '" 
-										+ partner.getArea().replace("'", "") + "', '" 
-										+ nuts3ciao + "', "
-										+ partner.getErdf() + ", " 
-										+ partner.getErdfContribution()+ ", " 
-										+ partner.getIpa() + ", " 
-										+ partner.getIpaContribution() + ", "
+										+ partner.getCountry().replace("'", "") + "', '" + partner.getPostalCode()
+										+ "', '" + partner.getArea().replace("'", "") + "', '" + nuts3ciao + "', "
+										+ partner.getErdf() + ", " + partner.getErdfContribution() + ", "
+										+ partner.getIpa() + ", " + partner.getIpaContribution() + ", "
 										+ partner.getAmount() + ");";
 								st.executeUpdate(populatePartners);
 								System.out.println(populatePartners);
@@ -138,7 +130,7 @@ public class Scraper {
 									+ proj.getAcronym().replace("'", "") + "';";
 							String getPartnerId = "select partner_id from partners where partner_name='"
 									+ partner.getName().replace("'", "") + "';";
-							
+
 							ResultSet ProjIdRes = st.executeQuery(getProjectId);
 
 							int projectId = 0;
@@ -156,8 +148,8 @@ public class Scraper {
 						}
 					} catch (SQLException e) {
 						System.out.println("errore:" + e.getMessage());
-					}catch(NullPointerException e) {
-						System.err.println("Error"+e.getMessage());
+					} catch (NullPointerException e) {
+						System.err.println("Error" + e.getMessage());
 					}
 				}
 
@@ -191,8 +183,8 @@ public class Scraper {
 					if (type != null) {
 						type = type.replace("'", "");
 					}
-					populateDeliverables = "insert into Deliverables values (NULL, '" + deliv.getUrl() + "', '"
-							+ title + "', " + delivdate + ", '" + description + "', '" + type + "', 0," + id + ");";
+					populateDeliverables = "insert into Deliverables values (NULL, '" + deliv.getUrl() + "', '" + title
+							+ "', " + delivdate + ", '" + description + "', '" + type + "', 0," + id + ");";
 					st.executeUpdate(populateDeliverables);
 					System.out.println(populateDeliverables);
 
@@ -207,8 +199,7 @@ public class Scraper {
 					if (deliv.getKeywords() != null) {
 						for (String keyword : deliv.getKeywords()) {
 							String insertDeliverableKeywords = "insert ignore into DeliverableKeywords values ("
-									+ deliverable_id + ", '" 
-									+ keyword + "');";
+									+ deliverable_id + ", '" + keyword + "');";
 							st.executeUpdate(insertDeliverableKeywords);
 						}
 					}
@@ -216,9 +207,8 @@ public class Scraper {
 					if (targets != null) {
 						for (String target : targets) {
 
-							populateTargets = "insert ignore into DeliverableTargets values (" 
-							+ deliverable_id + ", '"
-							+ target + "');";
+							populateTargets = "insert ignore into DeliverableTargets values (" + deliverable_id + ", '"
+									+ target + "');";
 							st.executeUpdate(populateTargets);
 						}
 					}
@@ -236,7 +226,7 @@ public class Scraper {
 		cn.close(); // chiusura connessione
 	}
 
-	public static void main(String[] args) throws UnsupportedEncodingException {
+	public static void main(String[] args) throws IOException, ParseException {
 
 		Document projects = null;
 
@@ -348,19 +338,45 @@ public class Scraper {
 	 * @param fileUrl the ourl from which download the file
 	 * @param date    the date of last modification of the new file
 	 * @param path    the path to download the file
+	 * @throws ParseException
 	 */
-	private static void downloadXlsFile(String fileUrl, Date date, String path) {
+	private static void downloadXlsFile(String fileUrl, Date date, String path) throws ParseException {
 
 		File filePartners = new File(path);
-		
-			URL urlFPartners = null;
-			try {
-				urlFPartners = new URL(fileUrl);
-			} catch (MalformedURLException e) {
 
+//		System.out.println("modified "+modified);
+		URL urlFPartners = null;
+		try {
+			urlFPartners = new URL(fileUrl);
+		} catch (MalformedURLException e) {
+
+		}
+		Path filePath = filePartners.toPath();
+		Date creationDate = null;
+		Date lastmodified = new Date(filePartners.lastModified());
+		long milliseconds = 0;
+		BasicFileAttributes attributes = null;
+		try {
+			attributes = Files.readAttributes(filePath, BasicFileAttributes.class);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try {
+			milliseconds = attributes.creationTime().to(TimeUnit.MILLISECONDS);
+
+			if ((milliseconds > Long.MIN_VALUE) && (milliseconds < Long.MAX_VALUE)) {
+				creationDate = new Date(attributes.creationTime().to(TimeUnit.MILLISECONDS));
+
+				System.out.println("File " + filePath.toString() + " created " + creationDate.getDate() + "/"
+						+ (creationDate.getMonth() + 1) + "/" + (creationDate.getYear() + 1900));
 			}
+		} catch (NullPointerException e) {
+			System.err.println("errore");
+//			e.printStackTrace();
+		}
+		try {
+			if (creationDate == null || lastmodified.after(creationDate)) {
 
-			if (urlFPartners != null) {
 				try {
 					// download the file
 					FileUtils.copyURLToFile(urlFPartners, filePartners, 30000, 30000);
@@ -369,8 +385,10 @@ public class Scraper {
 					System.out.println("error downloading partners file");
 				}
 			}
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+		}
 
-		
 	}
 
 }

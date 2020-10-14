@@ -72,7 +72,6 @@ public class XlsParser {
 				break;
 			}
 			
-
 			// objective
 			Cell objCell = cellIt.next();
 			switch(objCell.getCellType()) {

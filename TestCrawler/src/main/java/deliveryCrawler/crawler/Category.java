@@ -9,17 +9,25 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.*;
@@ -136,8 +144,9 @@ public class Category {
 	 * the deliveries
 	 * 
 	 * @param projectsMetadata
+	 * @throws ParseException
 	 */
-	public void parseCategory(Map<String, Project> projectsMetadata) {
+	public void parseCategory(Map<String, Project> projectsMetadata) throws ParseException {
 
 		// connect to category projets main page
 		Document doc = null;
@@ -270,8 +279,9 @@ public class Category {
 	 * url of the project
 	 * 
 	 * @param pr a project with delivarables url
+	 * @throws ParseException
 	 */
-	private void parseDeliverables(Project pr) {
+	private void parseDeliverables(Project pr) throws ParseException {
 
 		Document doc = null;
 
@@ -422,8 +432,9 @@ public class Category {
 	 * Download all resources of a delivery with their metadata
 	 * 
 	 * @param d a delivery with its url
+	 * @throws ParseException
 	 */
-	private void parseDelivery(Delivery d) {
+	private void parseDelivery(Delivery d) throws ParseException {
 
 		Document doc = null;
 		String url = d.getUrl();
@@ -638,8 +649,10 @@ public class Category {
 	 * @param outputFolder the folder where download the file
 	 * @param nTry         the number of trials downloading the file
 	 * @return the name of the downloaded files
+	 * @throws ParseException
 	 */
-	private List<String> downloadResource(String urlStr, String outputFolder, int nTry, String[] allowedFormats) {
+	private List<String> downloadResource(String urlStr, String outputFolder, int nTry, String[] allowedFormats)
+			throws ParseException {
 
 		// extract name and extention of file
 		String name = getFileName(urlStr);
@@ -680,13 +693,36 @@ public class Category {
 					con.disconnect();
 				}
 			}
+			String directory = outputFolder + "/docs/";
+			String path = directory + name;
+			File file = new File(path);
+			Path filePath = file.toPath();
+			BasicFileAttributes attributes = null;
+			String formatted = null;
+			long milliseconds = 0;
+			Date creationDate = null;
+			try {
+				attributes = Files.readAttributes(filePath, BasicFileAttributes.class);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			try {
+				milliseconds = attributes.creationTime().to(TimeUnit.MILLISECONDS);
 
+				if ((milliseconds > Long.MIN_VALUE) && (milliseconds < Long.MAX_VALUE)) {
+					creationDate = new Date(attributes.creationTime().to(TimeUnit.MILLISECONDS));
+
+					System.out.println("File " + filePath.toString() + " created " + creationDate.getDate() + "/"
+							+ (creationDate.getMonth() + 1) + "/" + (creationDate.getYear() + 1900));
+				}
+			} catch (NullPointerException e) {
+				System.err.println("errore");
+//				e.printStackTrace();
+			}
+			System.out.println("\nlastModified " + lastModified);
+			System.out.println("creationDate " + creationDate);
 			// if a not downloaded or updated file
-			if (this.lastMetadataFile == null || lastModified.after(this.lastMetadataFile)) {
-
-				String directory = outputFolder + "/docs/";
-				String path = directory + name;
-				File file = new File(path);
+			if (creationDate == null || lastModified.after(creationDate)) {
 
 				int i = 0;
 				boolean downloaded = false;
@@ -754,7 +790,7 @@ public class Category {
 
 			} else {
 
-				File file = new File(path + "/docs/" + name);
+				File fil = new File(path + "/docs/" + name);
 				if (file.exists()) {
 
 					fileNames.add(name);
@@ -804,9 +840,8 @@ public class Category {
 
 		// read zip entry
 		byte[] buffer = new byte[1024];
-		ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(fileZipPath), 1024),
-				Charset.forName("ISO-8859-1"));
-		ZipEntry zipEntry = zis.getNextEntry();
+		ArchiveInputStream zis = new ZipArchiveInputStream(new FileInputStream(fileZipPath), "UTF-8", false, true);
+		ArchiveEntry zipEntry = zis.getNextEntry();
 
 		while (zipEntry != null) {
 
@@ -844,7 +879,7 @@ public class Category {
 
 			zipEntry = zis.getNextEntry();
 		}
-		zis.closeEntry();
+		// zis.closeEntry();
 		zis.close();
 
 		return filesName;
