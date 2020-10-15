@@ -6,7 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
+
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -18,12 +18,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Hashtable;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
+
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
@@ -56,7 +56,7 @@ public class Scraper {
 
 		// Creo la connessione al database
 		cn = DriverManager.getConnection(
-				"jdbc:mysql://localhost:3306/talia2?useUnicode=yes&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false&user=root&password=root");
+				"jdbc:mysql://localhost:3306/talia2?useUnicode=yes&characterEncoding=UTF-8&allowPublicKeyRetrieval=true&useSSL=false&user=talia2&password=root");
 		// json è il nome del database
 		sql1 = "INSERT ignore INTO communities VALUES('" + cat.getCollection() + "');";
 		st = (Statement) cn.createStatement();
@@ -111,7 +111,6 @@ public class Scraper {
 									+ partner.getName().replace("'", "") + "';";
 
 							if (st.executeQuery(checkDuplicatePartners).first() == false) {
-								System.out.println("entro nel if\n");
 								byte[] nuts3 = partner.getNUTS3().replace("'", "").getBytes("UTF-8");
 								String nuts3ciao = new String(nuts3, "UTF-8");
 								populatePartners = "insert into Partners values (NULL," + partner.isLP() + ", '"
@@ -123,7 +122,7 @@ public class Scraper {
 										+ partner.getIpa() + ", " + partner.getIpaContribution() + ", "
 										+ partner.getAmount() + ");";
 								st.executeUpdate(populatePartners);
-								System.out.println(populatePartners);
+			
 							}
 							// aggiunta dati relativi ai partner del progetto correntemente esaminato
 							String getProjectId = "select project_id from projects where project_acronym='"
@@ -186,7 +185,7 @@ public class Scraper {
 					populateDeliverables = "insert into Deliverables values (NULL, '" + deliv.getUrl() + "', '" + title
 							+ "', " + delivdate + ", '" + description + "', '" + type + "', 0," + id + ");";
 					st.executeUpdate(populateDeliverables);
-					System.out.println(populateDeliverables);
+					
 
 					int deliverable_id = 0;
 					String getDeliverableId = "select deliverable_id from deliverables where deliverable_title='"
@@ -342,22 +341,20 @@ public class Scraper {
 	 */
 	private static void downloadXlsFile(String fileUrl, Date date, String path) throws ParseException {
 
-		File filePartners = new File(path);
+		File file = new File(path);
 
-//		System.out.println("modified "+modified);
 		URL urlFPartners = null;
 		try {
 			urlFPartners = new URL(fileUrl);
 		} catch (MalformedURLException e) {
 
 		}
-		Path filePath = filePartners.toPath();
-		Date creationDate = null;
-		Date lastmodified = new Date(filePartners.lastModified());
+		
+		Date creationDate = new Date(0);
 		long milliseconds = 0;
 		BasicFileAttributes attributes = null;
 		try {
-			attributes = Files.readAttributes(filePath, BasicFileAttributes.class);
+			attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -367,19 +364,18 @@ public class Scraper {
 			if ((milliseconds > Long.MIN_VALUE) && (milliseconds < Long.MAX_VALUE)) {
 				creationDate = new Date(attributes.creationTime().to(TimeUnit.MILLISECONDS));
 
-				System.out.println("File " + filePath.toString() + " created " + creationDate.getDate() + "/"
-						+ (creationDate.getMonth() + 1) + "/" + (creationDate.getYear() + 1900));
+				System.out.println("File " + file.toString() + "\n created " + creationDate.toString());
 			}
 		} catch (NullPointerException e) {
 			System.err.println("errore");
 //			e.printStackTrace();
 		}
 		try {
-			if (creationDate == null || lastmodified.after(creationDate)) {
+			if (date.after(creationDate)) {
 
 				try {
 					// download the file
-					FileUtils.copyURLToFile(urlFPartners, filePartners, 30000, 30000);
+					FileUtils.copyURLToFile(urlFPartners, file, 30000, 30000);
 				} catch (IOException e) {
 
 					System.out.println("error downloading partners file");

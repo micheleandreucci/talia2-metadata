@@ -696,13 +696,14 @@ public class Category {
 			String directory = outputFolder + "/docs/";
 			String path = directory + name;
 			File file = new File(path);
-			Path filePath = file.toPath();
 			BasicFileAttributes attributes = null;
 			String formatted = null;
 			long milliseconds = 0;
-			Date creationDate = null;
+			Date creationDate = new Date(0);
 			try {
-				attributes = Files.readAttributes(filePath, BasicFileAttributes.class);
+				if(file.exists()) {
+					attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -712,8 +713,7 @@ public class Category {
 				if ((milliseconds > Long.MIN_VALUE) && (milliseconds < Long.MAX_VALUE)) {
 					creationDate = new Date(attributes.creationTime().to(TimeUnit.MILLISECONDS));
 
-					System.out.println("File " + filePath.toString() + " created " + creationDate.getDate() + "/"
-							+ (creationDate.getMonth() + 1) + "/" + (creationDate.getYear() + 1900));
+					System.out.println("File " + file.toString() + "\n created " + creationDate.toString());
 				}
 			} catch (NullPointerException e) {
 				System.err.println("errore");
@@ -722,7 +722,7 @@ public class Category {
 			System.out.println("\nlastModified " + lastModified);
 			System.out.println("creationDate " + creationDate);
 			// if a not downloaded or updated file
-			if (creationDate == null || lastModified.after(creationDate)) {
+			if (lastModified.after(creationDate)) {
 
 				int i = 0;
 				boolean downloaded = false;
