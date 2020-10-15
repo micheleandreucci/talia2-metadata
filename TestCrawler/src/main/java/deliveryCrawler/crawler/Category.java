@@ -1,18 +1,18 @@
 package deliveryCrawler.crawler;
 
-import java.io.BufferedInputStream;
+
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
+
 import java.nio.file.Files;
-import java.nio.file.Path;
+
 import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -20,8 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -703,24 +702,15 @@ public class Category {
 			try {
 				if(file.exists()) {
 					attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+					milliseconds = attributes.creationTime().to(TimeUnit.MILLISECONDS);
+					creationDate = new Date(attributes.creationTime().to(TimeUnit.MILLISECONDS));
+					System.out.println("File " + file.toString());
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
-			}
-			try {
-				milliseconds = attributes.creationTime().to(TimeUnit.MILLISECONDS);
-
-				if ((milliseconds > Long.MIN_VALUE) && (milliseconds < Long.MAX_VALUE)) {
-					creationDate = new Date(attributes.creationTime().to(TimeUnit.MILLISECONDS));
-
-					System.out.println("File " + file.toString() + "\n created " + creationDate.toString());
-				}
 			} catch (NullPointerException e) {
 				System.err.println("errore");
-//				e.printStackTrace();
 			}
-			System.out.println("\nlastModified " + lastModified);
-			System.out.println("creationDate " + creationDate);
 			// if a not downloaded or updated file
 			if (lastModified.after(creationDate)) {
 
