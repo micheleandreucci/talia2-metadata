@@ -1,16 +1,12 @@
 package jsonObjects;
-
 import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-/*
- * struttura file Json
- */
 public class Delivery {
 
-	private String url;
+  private String url;
 	private String title;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	private Date date;
@@ -20,45 +16,35 @@ public class Delivery {
 	private List<String> targets;
 	private Project progetto;
 
-	public Delivery() {
-	}
-
+	public Delivery() {}
+	
 	public String getTitle() {
 		return title;
 	}
-
 	public void setTitle(String title) {
 		this.title = title;
 	}
-
 	public String getDescription() {
 		return description;
 	}
-
 	public void setDescription(String description) {
 		this.description = description;
 	}
-
 	public String getType() {
 		return type;
 	}
-
 	public void setType(String type) {
 		this.type = type;
 	}
-
 	public List<String> getKeywords() {
 		return keywords;
 	}
-
 	public void setKeywords(List<String> keywords) {
 		this.keywords = keywords;
 	}
-
 	public List<String> getTargets() {
 		return targets;
 	}
-
 	public void setTargets(List<String> targets) {
 		this.targets = targets;
 	}
@@ -85,5 +71,5 @@ public class Delivery {
 
 	public void setDate(Date date) {
 		this.date = date;
-	}
+} 
 }

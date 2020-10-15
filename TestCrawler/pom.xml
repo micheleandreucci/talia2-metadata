@@ -22,7 +22,7 @@
 			<version>3.8.1</version>
 			<scope>test</scope>
 		</dependency>
-	
+
 		<!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
 		<dependency>
 			<groupId>org.jsoup</groupId>

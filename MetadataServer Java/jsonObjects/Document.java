@@ -1,20 +1,20 @@
 package jsonObjects;
-
 public class Document {
-	String name;
-	Delivery delivery;
+  String name;
+  Delivery delivery;
 
+  
 	public Document() {
-		// DEFAULT CONSTRUCTOR
+		//DEFAULT CONSTRUCTOR
 	}
-
-	public Delivery getDelivery() {
-
+	
+public Delivery getDelivery() {
+		
 		return delivery;
 	}
 
 	public void setDelivery(Delivery delivery) {
-
+		
 		this.delivery = delivery;
 	}
 
@@ -24,7 +24,7 @@ public class Document {
 	}
 
 	public String getName() {
-
+		
 		return this.name;
 	}
 
