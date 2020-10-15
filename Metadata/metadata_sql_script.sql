@@ -6,22 +6,6 @@ DROP USER 'root'@'localhost';
 CREATE USER 'root' @'localhost' IDENTIFIED BY 'root';
 GRANT SELECT,INSERT ON Talia2.* TO root@localhost;
 
-create table Partners (
-  partner_id int not null auto_increment primary key,
-  ISLP boolean,
-  partner_name varchar(250) UNIQUE,
-  partner_nature varchar(50),
-  partner_country varchar(30),
-  partner_postalCode varchar(30),
-  partner_area varchar(100),
-  nuts3 varchar(150),
-  erdf double,
-  erdfContribution double,
-  ipa double,
-  ipaContribution double,
-  amount double
-);
-
 create table Communities (
   collection varchar(50) primary key
 );
@@ -44,7 +28,31 @@ create table Projects (
   project_status varchar(20),
   project_deliverables_url varchar(300),
   project_community varchar(50),
-  foreign key (project_community) references Communities(community_name)
+  foreign key (project_community) references Communities(collection)
+);
+
+create table Partners (
+  partner_id int not null auto_increment primary key,
+  ISLP boolean,
+  partner_name varchar(250) UNIQUE,
+  partner_nature varchar(50),
+  partner_country varchar(30),
+  partner_postalCode varchar(30),
+  partner_area varchar(100),
+  nuts3 varchar(150),
+  erdf double,
+  erdfContribution double,
+  ipa double,
+  ipaContribution double,
+  amount double
+);
+
+create table ProjectPartners (
+  project_id int not null,
+  project_partner_id int not null,
+  foreign key (project_partner_id) references Partners(partner_id),
+  foreign key (project_id) references Projects(project_id),
+  primary key(project_id, project_partner_id)
 );
 
 create table Deliverables (
@@ -55,9 +63,9 @@ create table Deliverables (
   deliverable_description varchar(2000),
   deliverable_type varchar(150),
   deliverable_project_id int not null,
-  deliverable_author_id int not null,  
-  foreign key (deliverable_project_id) references Projects(project_id),
-  foreign key (deliverable_author_id) references Partners(partner_id)
+  deliverable_author_id int not null
+  /*foreign key (deliverable_project_id) references Projects(project_id)
+  foreign key (deliverable_author_id) references Partners(partner_id)*/
 );
 
 create table DeliverableKeywords (
@@ -70,12 +78,4 @@ create table DeliverableTargets (
   deliverable_id int not null primary key,
   foreign key (deliverable_id) references Deliverables(deliverable_id),
   deliverable_target varchar(200) unique
-);
-
-create table ProjectPartners (
-  project_id int not null,
-  project_partner_id int not null,
-  foreign key (project_partner_id) references Partners(partner_id),
-  foreign key (project_id) references Projects(project_id),
-  primary key(project_id, project_partner_id)
 );
