@@ -73,18 +73,19 @@ public class Scraper {
 				if (st.executeQuery(checkDuplicateProjects).first() == false) {
 					try {
 						Date start = formatter.parse(proj.getStart().toString());
-						if (start == null)
+						/*if (start == null)
 							throw new NullPointerException();
+							*/
 						java.sql.Date sqlstart = new java.sql.Date(start.getTime());
 						Date end = formatter.parse(proj.getEnd().toString());
 						java.sql.Date sqlend = new java.sql.Date(end.getTime());
-						System.out.println("QUERY: " + "ASSE " + proj.getAxis() + "\n" + proj.getObjective() + "\n"
+						/*System.out.println("QUERY: " + "ASSE " + proj.getAxis() + "\n" + proj.getObjective() + "\n"
 								+ proj.getAcronym().replace("'", "") + "\n" + proj.getLabel().replace("'", "") + "\n"
 								+ proj.getSummary().replace("'", "") + "\n" + proj.getCall().replace("'", "") + "\n"
 								+ sqlstart + "\n" + sqlend + "\n" + proj.getType() + "\n" + proj.getErdf() + "\n"
 								+ proj.getIpa() + "\n" + proj.getAmount() + "\n" + proj.getCofinancing() + "\n"
 								+ proj.getStatus() + "\n" + "URL " + proj.getDeliverablesUrl() + "\n" + "COLLEZIONE "
-								+ cat.getCollection());
+								+ cat.getCollection());*/
 						populateProjects = "insert into Projects values (NULL, " + proj.getAxis() + ", "
 								+ proj.getObjective() + ", '" + proj.getAcronym().replace("'", "") + "', '"
 								+ proj.getLabel().replace("'", "") + "', '" + proj.getSummary().replace("'", "")
@@ -97,14 +98,13 @@ public class Scraper {
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
-					} catch (NullPointerException e) {
-						System.err.println("Error" + e.getMessage());
 					}
+			
 					// aggiunta dati relativi ai partners
 					try {
-						if (proj.getPartners() == null) {
+						/*if (proj.getPartners() == null) {
 							throw new NullPointerException();
-						}
+						}*/
 						for (Partner partner : proj.getPartners()) {
 
 							String checkDuplicatePartners = "select partner_name from partners where partner_name = '"
@@ -147,8 +147,6 @@ public class Scraper {
 						}
 					} catch (SQLException e) {
 						System.out.println("errore:" + e.getMessage());
-					} catch (NullPointerException e) {
-						System.err.println("Error" + e.getMessage());
 					}
 				}
 
@@ -239,7 +237,7 @@ public class Scraper {
 		}
 
 		Elements downloadLinks = projects.select("a[href*=/Projects_results/]");
-		System.out.println("links: " + downloadLinks);
+		
 		String projectFileUrl = null;
 		String beneficiariesFileUrl = null;
 		String pathProjects = "liste_projets_english_2020.02.18.xlsx";
@@ -250,9 +248,9 @@ public class Scraper {
 		for (Element l : downloadLinks) {
 
 			String fileUrl = l.absUrl("href");
-			System.out.println("Url: " + fileUrl);
+			
 			String urlName = l.text();
-			System.out.println("Nome: " + urlName);
+			
 
 			// extract the text of the link
 			String[] urlNamePart = urlName.split("-");
@@ -293,7 +291,7 @@ public class Scraper {
 		List<Category> categories = new LinkedList<Category>();
 
 		for (Element option : options) {
-
+			//seleziona dal form di ricerca, in tematics, le categorie e prende il valore
 			String categoryValue = option.attr("value");
 
 			if (!categoryValue.equalsIgnoreCase("0")) {
@@ -304,17 +302,18 @@ public class Scraper {
 				categories.add(cat);
 			}
 		}
-
+		
+		// for each category download the file and the metadata
 		for (Category cat : categories) {
 			// PRENDO SOLO LA CATEGORIA SOCIAL AND CREATIVE!
-			// if (cat.getCollection().toLowerCase().equals("blue growth")) {
-			// for each category download the file and the metadata
+			  //if (cat.getCollection().toLowerCase().equals("social and creative")) {
+			
 			System.out.println("######" + cat.getCollection().toUpperCase() + "######");
 			cat.parseCategory(projectsMetadata);
 			cat.writeMetadata();
 			Category newcat = cat.readMetadata();// Inutle se il caricamento del db avviene contestualmente al
 													// crawler.
-			System.out.println("NEWCAT: " + newcat);
+			
 			if (newcat != null) {
 
 				try {
@@ -325,7 +324,7 @@ public class Scraper {
 				}
 
 			}
-			// }
+			  // }
 		}
 	}
 
@@ -346,43 +345,38 @@ public class Scraper {
 		URL urlFPartners = null;
 		try {
 			urlFPartners = new URL(fileUrl);
-		} catch (MalformedURLException e) {
-
-		}
-		
-		Date creationDate = new Date(0);
-		long milliseconds = 0;
-		BasicFileAttributes attributes = null;
-		try {
-			attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		try {
-			milliseconds = attributes.creationTime().to(TimeUnit.MILLISECONDS);
-
-			if ((milliseconds > Long.MIN_VALUE) && (milliseconds < Long.MAX_VALUE)) {
-				creationDate = new Date(attributes.creationTime().to(TimeUnit.MILLISECONDS));
-
-				System.out.println("File " + file.toString() + "\n created " + creationDate.toString());
-			}
-		} catch (NullPointerException e) {
-			System.err.println("errore");
-//			e.printStackTrace();
-		}
-		try {
-			if (date.after(creationDate)) {
-
+			if (!file.exists()) {
+				FileUtils.copyURLToFile(urlFPartners, file, 30000, 30000);
+				System.out.println("File " + file.toString() + "\n created ");
+			} else {
+				Date creationDate = new Date(0);
+				long milliseconds = 0;
+				BasicFileAttributes attributes = null;
 				try {
-					// download the file
-					FileUtils.copyURLToFile(urlFPartners, file, 30000, 30000);
-				} catch (IOException e) {
+					attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+					milliseconds = attributes.creationTime().to(TimeUnit.MILLISECONDS);
 
-					System.out.println("error downloading partners file");
+					
+						creationDate = new Date(attributes.creationTime().to(TimeUnit.MILLISECONDS));
+						
+						if (date.after(creationDate)) {
+
+							try {
+								// download the file if is a update file
+								FileUtils.copyURLToFile(urlFPartners, file, 30000, 30000);
+							} catch (IOException e) {
+
+								System.out.println("error downloading file");
+							}
+						}
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
 			}
-		} catch (NullPointerException e) {
-			e.printStackTrace();
+		} catch (MalformedURLException e) {
+
+		} catch (IOException d) {
+			d.printStackTrace();
 		}
 
 	}
