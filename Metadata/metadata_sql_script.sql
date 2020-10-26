@@ -2,9 +2,9 @@ drop database if exists Talia2;
 CREATE DATABASE Talia2;
 use Talia2;
 
-DROP USER 'root'@'localhost';
-CREATE USER 'root' @'localhost' IDENTIFIED BY 'root';
-GRANT SELECT,INSERT ON Talia2.* TO root@localhost;
+DROP USER 'talia2'@'localhost';
+CREATE USER 'talia2' @'localhost' IDENTIFIED BY 'root';
+GRANT SELECT,INSERT ON Talia2.* TO talia2@localhost;
 
 create table Communities (
   collection varchar(50) primary key
