@@ -84,8 +84,8 @@ public class Matrix extends HttpServlet {
 		Model mod = objectMapper.readValue(requestJson, Model.class);
 		Models models = new Models();
 		try {
-			models.loadModels();
-			models.matrixModels.add(mod);
+			Models.loadModels();
+			Models.matrixModels.add(mod);
 			models.SaveModels();
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block

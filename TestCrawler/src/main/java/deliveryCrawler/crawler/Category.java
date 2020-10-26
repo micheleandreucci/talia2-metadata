@@ -1,18 +1,11 @@
 package deliveryCrawler.crawler;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -20,14 +13,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
 import javax.net.ssl.HttpsURLConnection;
 
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.*;
@@ -38,6 +25,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.model.FileHeader;
 
 @JsonIgnoreProperties(value = { "path", "number", "lastMetadataFile", "metadataPath", "formats" })
 public class Category {
@@ -145,8 +135,11 @@ public class Category {
 	 * 
 	 * @param projectsMetadata
 	 * @throws ParseException
+	 * @throws IOException
+	 * @throws MalformedURLException
 	 */
-	public void parseCategory(Map<String, Project> projectsMetadata) throws ParseException {
+	public void parseCategory(Map<String, Project> projectsMetadata)
+			throws ParseException, MalformedURLException, IOException {
 
 		// connect to category projets main page
 		Document doc = null;
@@ -225,11 +218,9 @@ public class Category {
 				String status = statusStr.split(":")[1].trim();
 
 //				Element bloc50_2 = bloc50s.get(1);
-//				String category = bloc50_2.getElementsByClass("category")
-//						.get(0).text();
+//				String category = bloc50_2.getElementsByClass("category").get(0).text();
 //
-//				String typeStr = bloc50_2.getElementsByClass("address").get(0)
-//						.text();
+//				String typeStr = bloc50_2.getElementsByClass("address").get(0).text();
 
 //				 // remove "Type:" from the string
 //				 String type = typeStr.split(":")[1];
@@ -253,7 +244,7 @@ public class Category {
 					Elements buttons = blocButton.get(0).children();
 
 					for (Element b : buttons) {
-						System.out.println("Button: " + b.text() + "\n\n");
+						System.out.println("Button: " + b.text() + "\n");
 						// if there is retrieve deliverables url from corresponding button
 						if (b.text().trim().equalsIgnoreCase("deliverables")) {
 
@@ -280,8 +271,10 @@ public class Category {
 	 * 
 	 * @param pr a project with delivarables url
 	 * @throws ParseException
+	 * @throws IOException
+	 * @throws MalformedURLException
 	 */
-	private void parseDeliverables(Project pr) throws ParseException {
+	private void parseDeliverables(Project pr) throws ParseException, MalformedURLException, IOException {
 
 		Document doc = null;
 
@@ -351,12 +344,6 @@ public class Category {
 						doc = Jsoup.connect(deliverablesUrl).timeout(50000).get();
 					} catch (IOException e) {
 
-						try {
-							Thread.sleep(10000);
-						} catch (InterruptedException e1) {
-
-						}
-
 						System.out.println((t + 1) + " attempt - " + " deliverables page error: " + e);
 						t++;
 					}
@@ -387,21 +374,21 @@ public class Category {
 						System.out.println("DELIVERABLE\n" + d);
 						// download the resource
 
-						List<String> fileNames = downloadResource(resUrl, path, 3, this.formats);
-
-						for (String f : fileNames) {
-							System.out.println("Filenames LORENZO:" + f + "\n"); // create the resource setting the
-																					// delivery previously created
-							Resource r = new Resource(f);
-							r.setDelivery(d);
-							documents.add(r);
-						}
+//						List<String> fileNames = downloadResource(resUrl, path, 3, this.formats);
+//						System.out.println("fileNames " + fileNames);
+//						for (String f : fileNames) {
+//							System.out.println("Filenames LORENZO:" + f + "\n"); // create the resource setting the
+//																					// delivery previously created
+//							Resource r = new Resource(f);
+//							r.setDelivery(d);
+//							documents.add(r);
+//						}
 
 					}
 
 				} else {
 
-					System.out.println("No delivery found");
+					System.out.println("No delivery found\n");
 				}
 
 			} else {
@@ -433,8 +420,10 @@ public class Category {
 	 * 
 	 * @param d a delivery with its url
 	 * @throws ParseException
+	 * @throws IOException
+	 * @throws MalformedURLException
 	 */
-	private void parseDelivery(Delivery d) throws ParseException {
+	private void parseDelivery(Delivery d) throws ParseException, MalformedURLException, IOException {
 
 		Document doc = null;
 		String url = d.getUrl();
@@ -552,8 +541,9 @@ public class Category {
 
 				System.out.println("Url: " + fUrl + "\n");
 				// download the resource
-				List<String> fileNames = downloadResource(fUrl, path, 3, this.formats);
-
+				List<String> fileNames = downloadResource(fUrl, path, 3, this.formats, date);
+				if (!fileNames.isEmpty())
+					System.out.println("list downloaded" + fileNames);
 				// create resource object using downloaded file name
 				for (String f : fileNames) {
 
@@ -571,11 +561,14 @@ public class Category {
 	public void writeMetadata() {
 
 		File folder = new File(path);
-		folder.mkdir();
-
+		if (!folder.exists()) {
+			folder.mkdir();
+		}
+		File json = new File(path + "/" + collection + ".json");
 		ObjectMapper mapper = new ObjectMapper();
 		try {
-			mapper.writeValue(new File(path + "/" + collection + ".json"), this);
+			if (!json.exists())
+				mapper.writeValue(json, this);
 		} catch (JsonGenerationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -650,16 +643,18 @@ public class Category {
 	 * @param nTry         the number of trials downloading the file
 	 * @return the name of the downloaded files
 	 * @throws ParseException
+	 * @throws IOException
+	 * @throws MalformedURLException
 	 */
-	private List<String> downloadResource(String urlStr, String outputFolder, int nTry, String[] allowedFormats)
-			throws ParseException {
+	private List<String> downloadResource(String urlStr, String outputFolder, int nTry, String[] allowedFormats,
+			Date date) throws ParseException {
 
 		// extract name and extention of file
 		String name = getFileName(urlStr);
 		String ext = getFileExtention(name);
 
 		URL url = null;
-		Date lastModified = null;
+
 		List<String> fileNames = new LinkedList<String>();
 
 		boolean allowedFormat = isAllowedFormat(ext, allowedFormats);
@@ -670,10 +665,10 @@ public class Category {
 			// connect to url
 			try {
 				url = new URL(urlStr);
-				System.out.print("url: " + urlStr + " ok");
+				System.out.println("url: " + urlStr + " ok \n");
 			} catch (MalformedURLException e) {
 
-				System.out.print("url: " + urlStr + " error");
+				System.out.println("url: " + urlStr + " error");
 			}
 
 			HttpsURLConnection con = null;
@@ -681,7 +676,6 @@ public class Category {
 
 				// extract the last modified of http response header
 				con = (HttpsURLConnection) url.openConnection();
-				lastModified = new Date(con.getLastModified());
 
 			} catch (IOException e1) {
 
@@ -696,33 +690,37 @@ public class Category {
 			String directory = outputFolder + "/docs/";
 			String path = directory + name;
 			File file = new File(path);
-			Path filePath = file.toPath();
 			BasicFileAttributes attributes = null;
-			String formatted = null;
-			long milliseconds = 0;
-			Date creationDate = null;
-			try {
-				attributes = Files.readAttributes(filePath, BasicFileAttributes.class);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			try {
-				milliseconds = attributes.creationTime().to(TimeUnit.MILLISECONDS);
 
-				if ((milliseconds > Long.MIN_VALUE) && (milliseconds < Long.MAX_VALUE)) {
+			Date creationDate = new Date(0); // inizializzo 1 Gen 1970
+			try {
+				if (file.exists()) {
+					attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
 					creationDate = new Date(attributes.creationTime().to(TimeUnit.MILLISECONDS));
 
-					System.out.println("File " + filePath.toString() + " created " + creationDate.getDate() + "/"
-							+ (creationDate.getMonth() + 1) + "/" + (creationDate.getYear() + 1900));
 				}
+			} catch (IOException e) {
+				e.printStackTrace();
 			} catch (NullPointerException e) {
 				System.err.println("errore");
-//				e.printStackTrace();
 			}
-			System.out.println("\nlastModified " + lastModified);
+
+			if (date == null) {
+				date = new Date(con.getLastModified());
+				/*
+				 * per la prima volta che faccio partire il Crawler, se il file che sto
+				 * scaricando non presenta la data sul sito, assegno al file la data di ultima
+				 * modifica
+				 */
+			}
+			System.out.println("estensione " + ext);
+			System.out.println("lastModified " + date);
 			System.out.println("creationDate " + creationDate);
-			// if a not downloaded or updated file
-			if (creationDate == null || lastModified.after(creationDate)) {
+			/*
+			 * Se il file esiste in locale, creationDate assume il valore del giorno in cui
+			 * è stato scaricato in locale il file
+			 */
+			if (date.after(creationDate)) {
 
 				int i = 0;
 				boolean downloaded = false;
@@ -731,36 +729,32 @@ public class Category {
 
 					try {
 
+						File folder = new File(path.replace(".zip", ""));
+						// Se la cartella esiste in locale per l'estensione zip
+						if (!folder.isDirectory() && ext.equalsIgnoreCase("zip")) {
+
+							FileUtils.copyURLToFile(url, file, 30000, 30000);
+							fileNames = unzip(path, directory);
+//							System.out.println(fileNames);
+							System.out.println(name + " - downloded at " + (i + 1) + " attempt");
+						} else if (ext.equalsIgnoreCase("pdf")) {
+							FileUtils.copyURLToFile(url, file, 30000, 30000);
+							System.out.println(name + " - downloded at " + (i + 1) + " attempt");
+						}
+
 						// download it
-						FileUtils.copyURLToFile(url, file, 30000, 30000);
+						// FileUtils.copyURLToFile(url, file, 30000, 30000);
 						downloaded = true;
-						System.out.println(name + " - downloded at " + (i + 1) + " attempt");
 
 					} catch (IOException e) {
-
-						try {
-							Thread.sleep(10000);
-						} catch (InterruptedException e1) {
-						}
 
 						i++;
 						System.out.println(name + " " + i + " download error " + e);
-
 					}
+
 				}
 
 				if (ext.equalsIgnoreCase("zip")) {
-
-					try {
-						// unzip in a folder of the same name of the zip
-						fileNames = unzip(path, directory, allowedFormats);
-					} catch (IOException e) {
-
-						System.out.println("Error unzipping: " + e);
-					} catch (IllegalArgumentException e) {
-
-						System.out.println("Error unzipping: " + e);
-					}
 
 					// delete the compressed file
 					boolean deleted = file.delete();
@@ -782,22 +776,26 @@ public class Category {
 
 				String nameNoExt = name.replace(".zip", "");
 				File folder = new File(path + "/docs/" + nameNoExt);
-				File[] listOfFiles = folder.listFiles();
-				for (File f : listOfFiles) {
+				if (folder.exists()) {
+					File[] listOfFiles = folder.listFiles();
 
-					fileNames.add(nameNoExt + "/" + f.getName());
+					for (File f : listOfFiles) {
+
+						fileNames.add(nameNoExt + "/" + f.getName());
+					}
 				}
 
 			} else {
 
 				File fil = new File(path + "/docs/" + name);
-				if (file.exists()) {
+				if (fil.exists()) {
 
 					fileNames.add(name);
 				}
 			}
-		}
 
+		}
+//		System.out.println("Lista in download" + fileNames);
 		return fileNames;
 
 	}
@@ -823,67 +821,57 @@ public class Category {
 	 * @param fileZipPath the path of the zip file
 	 * @param destDirPath the folder where unzip the file
 	 * @return a list of names of file extracted
+	 * @throws net.lingala.zip4j.exception.ZipException
+	 * @throws ParseException
 	 * @throws IOException
 	 * @throws IllegalArgumentException
 	 */
-	private static List<String> unzip(String fileZipPath, String destDirPath, String[] allowedFormats)
-			throws IOException, IllegalArgumentException {
-
+	private static List<String> unzip(String fileZipPath, String destDirPath)
+			throws net.lingala.zip4j.exception.ZipException, ParseException {
+		ZipFile zipFile = new ZipFile(fileZipPath);
 		String zipName = getFileName(fileZipPath);
 		String zipNameNoExt = zipName.replaceAll("\\.zip", "");
-
-		// create a folder with the same name of the zip file
-		File destDir = new File(destDirPath + "/" + zipNameNoExt + "/");
-		destDir.mkdirs();
-
+		File folder = new File(destDirPath);
 		List<String> filesName = new LinkedList<String>();
-
-		// read zip entry
-		byte[] buffer = new byte[1024];
-		ArchiveInputStream zis = new ZipArchiveInputStream(new FileInputStream(fileZipPath), "UTF-8", false, true);
-		ArchiveEntry zipEntry = zis.getNextEntry();
-
-		while (zipEntry != null) {
-
-			String name = zipEntry.getName();
-
-			// don't create folder nested folder
-			if (name.lastIndexOf("/") == name.length() - 1) {
-
-				zipEntry = zis.getNextEntry();
-				continue;
-			}
-
-			String ext = getFileExtention(name);
-
-			boolean isAllowedFormat = isAllowedFormat(ext, allowedFormats);
-
-			// write only if it is one of the allowed format excluding zip
-			if (isAllowedFormat && !ext.equalsIgnoreCase("zip")) {
-
-				// transorm the path into a plain name
-				name = name.replace("/", "-");
-
-				// add file name to the list
-				filesName.add(zipNameNoExt + "/" + name);
-
-				// write the file
-				File newFile = new File(destDir, name);
-				FileOutputStream fos = new FileOutputStream(newFile);
-				int len;
-				while ((len = zis.read(buffer)) > 0) {
-					fos.write(buffer, 0, len);
+		List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+		if (!(zipNameNoExt.contains(folder.getName()))) {
+			File destDir = new File(destDirPath + "/" + zipNameNoExt + "/");
+			destDir.mkdirs();
+			System.out.println("Unzip " + zipName);
+			for (FileHeader file : fileHeaders) {
+				String fileName = file.getFileName();
+				if (fileName.contains(".pdf")) {
+					zipFile.extractFile(file, destDir.getAbsolutePath());
+					System.out.println("contenuto dello zip " + file.getFileName() + " data: "
+							+ new Date(file.getLastModifiedTime() * 1000));
+					filesName.add(fileName);
+//					zipFile.extractAll(destDirPath);
 				}
-				fos.close();
 			}
-
-			zipEntry = zis.getNextEntry();
 		}
-		// zis.closeEntry();
-		zis.close();
-
+		System.out.println("file in zip" + filesName);
 		return filesName;
 	}
+
+//	private static Date getMaxDate(String fileZipPath) {
+//		Date date = new Date(0);
+//		Date max = new Date(0);
+//		try {
+//			ZipFile zipFile = new ZipFile(fileZipPath);
+//			List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+//			for (FileHeader file : fileHeaders) {
+//				date = new Date(file.getLastModifiedTime() * 1000);
+//				if (date.after(max)) {
+//					max = date;
+//				}
+//			}
+//		} catch (ZipException e) {
+//			e.printStackTrace();
+//		}
+//		System.out.println("data massima dell'archivio " + max);
+//		return max;
+//
+//	}
 
 	private static boolean isAllowedFormat(String ext, String[] allowedFormats) {
 

@@ -26,7 +26,7 @@ public class XlsParser {
 	 * @return
 	 */
 	public static Map<String, Project> parseProjects(String projectFilePath, String partnersFilePath) {
-		System.out.println("partnersFilePath: "+partnersFilePath);
+//		System.out.println("partnersFilePath: "+partnersFilePath);
 		Map<String, List<Partner>> partners = parsePartners(partnersFilePath);
 
 		Map<String, Project> projects = new HashMap<String, Project>();
@@ -172,16 +172,16 @@ public class XlsParser {
 	public static Map<String, List<Partner>> parsePartners(String filePath) {
 
 		File partnersFile = new File(filePath);
-		System.out.println("partnersFile: "+partnersFile);
+//		System.out.println("partnersFile: "+partnersFile);
 		FileInputStream fis = null;
 		XSSFWorkbook workbook = null;
 		Map<String, List<Partner>> partners = new HashMap<String, List<Partner>>();
 
 		try {
 			fis = new FileInputStream(partnersFile);
-			System.out.println("fis: "+fis.toString());
+//			System.out.println("fis: "+fis.toString());
 			workbook = new XSSFWorkbook(fis);
-			System.out.println("workbook: "+workbook);
+//			System.out.println("workbook: "+workbook);
 		} catch (IOException e) {
 
 			System.out.println("Error opening partners file: " + e);

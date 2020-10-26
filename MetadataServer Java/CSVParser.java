@@ -29,7 +29,8 @@ public class CSVParser {
         return parseLine(cvsLine, separators, DEFAULT_QUOTE);
     }
 
-    public static List<String> parseLine(String cvsLine, char separators, char customQuote) {
+    @SuppressWarnings("null")
+	public static List<String> parseLine(String cvsLine, char separators, char customQuote) {
 
         List<String> result = new ArrayList<String>();
 
