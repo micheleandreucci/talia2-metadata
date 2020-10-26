@@ -22,7 +22,7 @@ public class Project {
 	private double erdf;
 	private double ipa;
 	private double amount;
-	private String cofinancing;
+	private Double cofinancing;
 	private String status;
 	private String deliverablesUrl;
 	private List<Partner> partners;
@@ -115,10 +115,10 @@ public class Project {
 	public void setAmount(double amount) {
 		this.amount = amount;
 	}
-	public String getCofinancing() {
+	public double getCofinancing() {
 		return cofinancing;
 	}
-	public void setCofinancing(String cofinancing) {
+	public void setCofinancing(double cofinancing) {
 		this.cofinancing = cofinancing;
 	}
 	public List<Partner> getPartners() {

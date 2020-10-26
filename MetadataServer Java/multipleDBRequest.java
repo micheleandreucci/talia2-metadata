@@ -73,17 +73,18 @@ public class multipleDBRequest {
 				db.loadProjectData(project.getAxis(), project.getObjective(), project.getAcronym(), project.getLabel(),
 						project.getSummary(), project.getCall(), project.getStart(), project.getEnd(),
 						project.getType(), project.getErdf(), project.getIpa(), project.getAmount(),
-						Double.parseDouble(project.getCofinancing()), project.getStatus(), project.getDeliverablesUrl(),
+						project.getCofinancing(), project.getStatus(), project.getDeliverablesUrl(),
 						json_object.getCollection());
+				if (project.getPartners() != null) {
+					for (jsonObjects.Partner partner : project.getPartners()) {
 
-				for (jsonObjects.Partner partner : project.getPartners()) {
+						db.loadPartnerData(partner.isLP(), partner.getName(), partner.getNature(), partner.getCountry(),
+								partner.getPostalCode(), partner.getArea(), partner.getNUTS3(), null, null,
+								partner.getErdf(), partner.getErdfContribution(), partner.getIpa(),
+								partner.getIpaContribution(), partner.getAmount());
 
-					db.loadPartnerData(partner.isLP(), partner.getName(), partner.getNature(), partner.getCountry(),
-							partner.getPostalCode(), partner.getArea(), partner.getNUTS3(), null, null,
-							partner.getErdf(), partner.getErdfContribution(), partner.getIpa(),
-							partner.getIpaContribution(), partner.getAmount());
-
-					db.loadProjectPartner(project.getAcronym(), partner.getName());
+						db.loadProjectPartner(project.getAcronym(), partner.getName());
+					}
 				}
 
 				db.loadDeliverableData(deliverable.getUrl(), document.getName(), deliverable.getDate(),

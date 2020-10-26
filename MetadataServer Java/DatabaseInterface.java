@@ -88,7 +88,7 @@ public class DatabaseInterface {
 
 	public void loadProjectData(int axis, int objective, String acronym, String label, String summary, String call,
 			Date start_date, Date end_date, String type, double erdf, double ipa_funds, double project_amount,
-			double cofinancing_rate, String project_status, String url, String community) throws SQLException {
+			Double cofinancing_rate, String project_status, String url, String community) throws SQLException {
 		try {
 			DateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
 
@@ -103,32 +103,33 @@ public class DatabaseInterface {
 			if (stat.executeQuery(checkDuplicateProject).first() == false) {
 				// aggiunta dati relativi al progetto
 				try {
-					Date start = formatter.parse(start_date.toString());
-					System.out.println("inizio " + start);
-					java.sql.Date sqlstart = new java.sql.Date(start.getTime());
-					Date end = formatter.parse(end_date.toString());
-					java.sql.Date sqlend = new java.sql.Date(end.getTime());
+					if (start_date != null) {
+						Date start = formatter.parse(start_date.toString());
+						System.out.println("inizio " + start);
+						java.sql.Date sqlstart = new java.sql.Date(start.getTime());
+						Date end = formatter.parse(end_date.toString());
+						java.sql.Date sqlend = new java.sql.Date(end.getTime());
 
-					if (label != null) {
-						label = label.replace("'", "");
+						if (label != null) {
+							label = label.replace("'", "");
+						}
+
+						if (summary != null) {
+							summary = summary.replace("'", "");
+						}
+
+						if (call != null) {
+							call = call.replace("'", "");
+						}
+
+						String populateProjects = "insert ignore into Projects values (NULL, " + axis + ", " + objective
+								+ ", '" + acronym + "', '" + label + "', '" + summary + "', '" + call + "', '"
+								+ sqlstart + "', '" + sqlend + "', '" + type + "', " + erdf + ", " + ipa_funds + ", "
+								+ project_amount + ", " + cofinancing_rate + ", '" + project_status + "', '" + url
+								+ "', '" + community + "');";
+						System.out.println(populateProjects);
+						stat.executeUpdate(populateProjects);
 					}
-
-					if (summary != null) {
-						summary = summary.replace("'", "");
-					}
-
-					if (call != null) {
-						call = call.replace("'", "");
-					}
-
-					String populateProjects = "insert ignore into Projects values (NULL, " + axis + ", " + objective
-							+ ", '" + acronym + "', '" + label + "', '" + summary + "', '" + call + "', '" + sqlstart
-							+ "', '" + sqlend + "', '" + type + "', " + erdf + ", " + ipa_funds + ", " + project_amount
-							+ ", " + cofinancing_rate + ", '" + project_status + "', '" + url + "', '" + community
-							+ "');";
-					System.out.println(populateProjects);
-					stat.executeUpdate(populateProjects);
-
 				} catch (ParseException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

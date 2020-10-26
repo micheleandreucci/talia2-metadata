@@ -66,21 +66,23 @@ public class Scraper {
 				// aggiunta dati relativi al progetto
 				if (st.executeQuery(checkDuplicateProjects).first() == false) {
 					try {
+						Date start = null;
 						System.out.println("start " + proj.getStart().toString());
-						Date start = formatter.parse(proj.getStart().toString());
+						if (proj.getStart() != null) {
+							start = formatter.parse(proj.getStart().toString());
+							java.sql.Date sqlstart = new java.sql.Date(start.getTime());
 
-						java.sql.Date sqlstart = new java.sql.Date(start.getTime());
-						Date end = formatter.parse(proj.getEnd().toString());
-						java.sql.Date sqlend = new java.sql.Date(end.getTime());
-						populateProjects = "insert ignore into Projects values (NULL, " + proj.getAxis() + ", "
-								+ proj.getObjective() + ", '" + proj.getAcronym().replace("'", "") + "', '"
-								+ proj.getLabel().replace("'", "") + "', '" + proj.getSummary().replace("'", "")
-								+ "', '" + proj.getCall().replace("'", "") + "', '" + sqlstart + "', '" + sqlend
-								+ "', '" + proj.getType() + "', " + proj.getErdf() + ", " + proj.getIpa() + ", "
-								+ proj.getAmount() + ", " + proj.getCofinancing() + ", '" + proj.getStatus() + "', '"
-								+ proj.getDeliverablesUrl() + "', '" + cat.getCollection() + "');";
-						st.executeUpdate(populateProjects);
-
+							Date end = formatter.parse(proj.getEnd().toString());
+							java.sql.Date sqlend = new java.sql.Date(end.getTime());
+							populateProjects = "insert ignore into Projects values (NULL, " + proj.getAxis() + ", "
+									+ proj.getObjective() + ", '" + proj.getAcronym().replace("'", "") + "', '"
+									+ proj.getLabel().replace("'", "") + "', '" + proj.getSummary().replace("'", "")
+									+ "', '" + proj.getCall().replace("'", "") + "', '" + sqlstart + "', '" + sqlend
+									+ "', '" + proj.getType() + "', " + proj.getErdf() + ", " + proj.getIpa() + ", "
+									+ proj.getAmount() + ", " + proj.getCofinancing() + ", '" + proj.getStatus()
+									+ "', '" + proj.getDeliverablesUrl() + "', '" + cat.getCollection() + "');";
+							st.executeUpdate(populateProjects);
+						}
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -92,45 +94,47 @@ public class Scraper {
 					try {
 						System.out.println("il progetto e' " + proj.getPartners());
 						for (Partner partner : proj.getPartners()) {
+							if (proj.getPartners() != null) {
 
-							String checkDuplicatePartners = "select partner_name from partners where partner_name = '"
-									+ partner.getName().replace("'", "") + "';";
+								String checkDuplicatePartners = "select partner_name from partners where partner_name = '"
+										+ partner.getName().replace("'", "") + "';";
 
-							if (st.executeQuery(checkDuplicatePartners).first() == false) {
+								if (st.executeQuery(checkDuplicatePartners).first() == false) {
 //								System.out.println("entro nel if\n");
-								byte[] nuts3 = partner.getNUTS3().replace("'", "").getBytes("UTF-8");
-								String nuts3ciao = new String(nuts3, "UTF-8");
-								populatePartners = "insert ignore into Partners values (NULL," + partner.isLP() + ", '"
-										+ partner.getName().replace("'", "") + "', '"
-										+ partner.getNature().replace("'", "") + "', '"
-										+ partner.getCountry().replace("'", "") + "', '" + partner.getPostalCode()
-										+ "', '" + partner.getArea().replace("'", "") + "', '" + nuts3ciao + "', "
-										+ partner.getErdf() + ", " + partner.getErdfContribution() + ", "
-										+ partner.getIpa() + ", " + partner.getIpaContribution() + ", "
-										+ partner.getAmount() + ");";
-								st.executeUpdate(populatePartners);
+									byte[] nuts3 = partner.getNUTS3().replace("'", "").getBytes("UTF-8");
+									String nuts3ciao = new String(nuts3, "UTF-8");
+									populatePartners = "insert ignore into Partners values (NULL," + partner.isLP()
+											+ ", '" + partner.getName().replace("'", "") + "', '"
+											+ partner.getNature().replace("'", "") + "', '"
+											+ partner.getCountry().replace("'", "") + "', '" + partner.getPostalCode()
+											+ "', '" + partner.getArea().replace("'", "") + "', '" + nuts3ciao + "', "
+											+ partner.getErdf() + ", " + partner.getErdfContribution() + ", "
+											+ partner.getIpa() + ", " + partner.getIpaContribution() + ", "
+											+ partner.getAmount() + ");";
+									st.executeUpdate(populatePartners);
 //								System.out.println(populatePartners);
-							}
-							// aggiunta dati relativi ai partner del progetto correntemente esaminato
-							String getProjectId = "select project_id from projects where project_acronym='"
-									+ proj.getAcronym().replace("'", "") + "';";
-							String getPartnerId = "select partner_id from partners where partner_name='"
-									+ partner.getName().replace("'", "") + "';";
+								}
+								// aggiunta dati relativi ai partner del progetto correntemente esaminato
+								String getProjectId = "select project_id from projects where project_acronym='"
+										+ proj.getAcronym().replace("'", "") + "';";
+								String getPartnerId = "select partner_id from partners where partner_name='"
+										+ partner.getName().replace("'", "") + "';";
 
-							ResultSet ProjIdRes = st.executeQuery(getProjectId);
+								ResultSet ProjIdRes = st.executeQuery(getProjectId);
 
-							int projectId = 0;
-							if (ProjIdRes.next()) {
-								projectId = ProjIdRes.getInt(1);
+								int projectId = 0;
+								if (ProjIdRes.next()) {
+									projectId = ProjIdRes.getInt(1);
+								}
+								ResultSet PartIdRes = st.executeQuery(getPartnerId);
+								int partnerId = 0;
+								if (PartIdRes.next()) {
+									partnerId = PartIdRes.getInt(1);
+								}
+								String addProjectPartner = "insert ignore into projectPartners values (" + projectId
+										+ ", '" + partnerId + "');";
+								st.executeUpdate(addProjectPartner);
 							}
-							ResultSet PartIdRes = st.executeQuery(getPartnerId);
-							int partnerId = 0;
-							if (PartIdRes.next()) {
-								partnerId = PartIdRes.getInt(1);
-							}
-							String addProjectPartner = "insert ignore into projectPartners values (" + projectId + ", '"
-									+ partnerId + "');";
-							st.executeUpdate(addProjectPartner);
 						}
 					} catch (SQLException e) {
 						System.out.println("errore: " + e.getMessage());
