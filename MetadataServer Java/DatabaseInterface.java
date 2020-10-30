@@ -34,257 +34,245 @@ public class DatabaseInterface {
 	}
 
 	public void loadDeliverableData(String url, String title, Date date, String description, String type,
-			String project_acronym) throws SQLException, ParseException {
-		try {
-			DateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
-			int project_id = 0;
-			String delivdate = "";
+			String project_acronym, String partner_name) throws SQLException, ParseException {
 
-			if (date != null) {
-				String string_date = date.toString();
-				Date formatted_date = formatter.parse(string_date);
-				delivdate = "'" + new java.sql.Date(formatted_date.getTime()).toString() + "'";
-			} else {
-				delivdate = "null";
-			}
+		DateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
+		int project_id = 0;
+		int partner_id = 0;
+		String delivdate = "";
 
-			ResultSet result = stat
-					.executeQuery("select project_id from projects where project_acronym='" + project_acronym + "';");
-
-			if (result.next()) {
-				project_id = result.getInt(1);
-			}
-
-			if (title != null) {
-				title = title.replace("'", "");
-			}
-
-			if (description != null) {
-				description = description.replace("'", "");
-			}
-
-			if (type != null) {
-				type = type.replace("'", "");
-			}
-
-			String insertDeliverable = "insert ignore into Deliverables values (NULL, '" + url + "', '" + title + "', "
-					+ delivdate + ", '" + description + "', '" + type + "', 0," + project_id + ");";
-			System.out.println(insertDeliverable);
-			stat.executeUpdate(insertDeliverable);
-		} catch (SQLException e) {
-			System.err.println("errore " + e.getMessage());
+		if (date != null) {
+			String string_date = date.toString();
+			Date formatted_date = formatter.parse(string_date);
+			delivdate = "'" + new java.sql.Date(formatted_date.getTime()).toString() + "'";
+		} else {
+			delivdate = "null";
 		}
+		ResultSet project_result = stat
+				.executeQuery("select project_id from projects where project_acronym='" + project_acronym + "';");
+
+		if (project_result.next()) {
+			project_id = project_result.getInt(1);
+		}
+
+		ResultSet partner_result = stat.executeQuery(
+				"select partner_id from partners where partner_name='" + partner_name.replace("'", "") + "';");
+
+		if (partner_result.next()) {
+			partner_id = partner_result.getInt(1);
+		}
+
+		if (title != null) {
+			title = title.replace("'", "");
+		}
+
+		if (description != null) {
+			description = description.replace("'", "");
+		}
+
+		if (type != null) {
+			type = type.replace("'", "");
+		}
+
+		String insertDeliverable = "insert ignore into Deliverables values (NULL, '" + url + "', '" + title + "', "
+				+ delivdate + ", '" + description + "', '" + type + "', " + project_id + "," + partner_id + ");";
+
+		stat.executeUpdate(insertDeliverable);
 	};
 
 	public void loadCommunityData(String community) throws SQLException {
-		try {
-			String insertCommunity = "INSERT IGNORE INTO communities VALUES('" + community + "');";
-			System.out.println(insertCommunity);
-			stat.executeUpdate(insertCommunity);
-		} catch (SQLException e) {
-			System.err.println("errore:" + e.getMessage());
-		}
+		String insertCommunity = "INSERT ignore INTO communities VALUES('" + community + "');";
+		stat.executeUpdate(insertCommunity);
 	};
 
 	public void loadProjectData(int axis, int objective, String acronym, String label, String summary, String call,
 			Date start_date, Date end_date, String type, double erdf, double ipa_funds, double project_amount,
-			Double cofinancing_rate, String project_status, String url, String community) throws SQLException {
-		try {
-			DateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
+			double cofinancing_rate, String project_status, String url, String community) throws SQLException {
 
-			if (acronym != null) {
-				acronym = acronym.replace("'", "");
-			}
+		DateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US);
 
-			// controllo progetto già presente
-			String checkDuplicateProject = "select project_acronym from projects where project_acronym='" + acronym
-					+ "';";
+		if (acronym != null) {
+			acronym = acronym.replace("'", "");
+		}
 
-			if (stat.executeQuery(checkDuplicateProject).first() == false) {
-				// aggiunta dati relativi al progetto
-				try {
-					if (start_date != null) {
-						Date start = formatter.parse(start_date.toString());
-						System.out.println("inizio " + start);
-						java.sql.Date sqlstart = new java.sql.Date(start.getTime());
-						Date end = formatter.parse(end_date.toString());
-						java.sql.Date sqlend = new java.sql.Date(end.getTime());
+		// controllo progetto già presente
+		String checkDuplicateProject = "select project_acronym from projects where project_acronym='" + acronym + "';";
 
-						if (label != null) {
-							label = label.replace("'", "");
-						}
+		if (stat.executeQuery(checkDuplicateProject).first() == false) {
+			// aggiunta dati relativi al progetto
+			try {
+				Date start = formatter.parse(start_date.toString());
+				java.sql.Date sqlstart = new java.sql.Date(start.getTime());
+				Date end = formatter.parse(end_date.toString());
+				java.sql.Date sqlend = new java.sql.Date(end.getTime());
 
-						if (summary != null) {
-							summary = summary.replace("'", "");
-						}
-
-						if (call != null) {
-							call = call.replace("'", "");
-						}
-
-						String populateProjects = "insert ignore into Projects values (NULL, " + axis + ", " + objective
-								+ ", '" + acronym + "', '" + label + "', '" + summary + "', '" + call + "', '"
-								+ sqlstart + "', '" + sqlend + "', '" + type + "', " + erdf + ", " + ipa_funds + ", "
-								+ project_amount + ", " + cofinancing_rate + ", '" + project_status + "', '" + url
-								+ "', '" + community + "');";
-						System.out.println(populateProjects);
-						stat.executeUpdate(populateProjects);
-					}
-				} catch (ParseException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				if (label != null) {
+					label = label.replace("'", "");
 				}
+
+				if (summary != null) {
+					summary = summary.replace("'", "");
+				}
+
+				if (call != null) {
+					call = call.replace("'", "");
+				}
+
+				String populateProjects = "insert into Projects values (NULL, " + axis + ", " + objective + ", '"
+						+ acronym + "', '" + label + "', '" + summary + "', '" + call + "', " + sqlstart + ", " + sqlend
+						+ ", '" + type + "', " + erdf + ", " + ipa_funds + ", " + project_amount + ", "
+						+ cofinancing_rate + ", '" + project_status + "', '" + url + "', '" + community + "');";
+
+				stat.executeUpdate(populateProjects);
+
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		} catch (SQLException e) {
-			System.err.println("non riesco a caricare il progetto" + e);
-			System.out.println("errore:" + e.getMessage());
 		}
 	}
 
 	public void loadPartnerData(Boolean lp, String name, String nature, String country, String postal_code, String area,
-			String nuts3, String city, String address, double erdf, double erdf_contribution, double ipa_funds,
-			double ipa_contribution, double amount) throws SQLException, UnsupportedEncodingException {
-		try {
-			String checkDuplicatePartners = "select partner_name from partners where partner_name='"
-					+ name.replace("'", "") + "';";
+			String nuts3, double erdf, double erdf_contribution, double ipa_funds, double ipa_contribution,
+			double amount) throws SQLException, UnsupportedEncodingException {
 
-			if (stat.executeQuery(checkDuplicatePartners).first() == false) {
-				byte[] byte_nuts3;
+		String checkDuplicatePartners = "select partner_name from partners where partner_name='" + name.replace("'", "")
+				+ "';";
 
-				if (nuts3 != null) {
-					byte_nuts3 = nuts3.replace("'", "").getBytes("UTF-8");
-					nuts3 = new String(byte_nuts3, "UTF-8");
-				}
+		if (stat.executeQuery(checkDuplicatePartners).first() == false) {
+			byte[] byte_nuts3;
 
-				if (country != null) {
-					country = country.replace("'", "");
-				}
-
-				if (name != null) {
-					name = name.replace("'", "");
-				}
-
-				if (nature != null) {
-					nature = nature.replace("'", "");
-				}
-
-				if (area != null) {
-					area = area.replace("'", "");
-				}
-
-				String insertPartner = "insert ignore into Partners values (NULL, " + lp + ", '" + name + "', '"
-						+ nature + "', '" + country + "', '" + postal_code + "', '" + area + "', '" + nuts3 + "', "
-						+ erdf + ", " + erdf_contribution + ", " + ipa_funds + ", " + ipa_contribution + ", " + amount
-						+ ");";
-				System.out.println(insertPartner);
-				stat.executeUpdate(insertPartner);
+			if (nuts3 != null) {
+				byte_nuts3 = nuts3.replace("'", "").getBytes("UTF-8");
+				nuts3 = new String(byte_nuts3, "UTF-8");
 			}
-		} catch (NullPointerException e) {
-			System.err.println("non riesco a caricare il partner " + e);
-			e.printStackTrace();
+
+			if (country != null) {
+				country = country.replace("'", "");
+			}
+
+			if (name != null) {
+				name = name.replace("'", "");
+			}
+
+			if (nature != null) {
+				nature = nature.replace("'", "");
+			}
+
+			if (area != null) {
+				area = area.replace("'", "");
+			}
+
+			String insertPartner = "insert into Partners values (NULL, " + lp + ", '" + name + "', '" + nature + "', '"
+					+ country + "', '" + postal_code + "', '" + area + "', '" + nuts3 + "', " + erdf + ", "
+					+ erdf_contribution + ", " + ipa_funds + ", " + ipa_contribution + ", " + amount + ");";
+
+			stat.executeUpdate(insertPartner);
 		}
 
 	}
 
 	public void loadDeliverableKeywords(String deliverable_title, List<String> keywords)
 			throws SQLException, UnknownDeliverableException {
-		try {
-			int deliverable_id;
 
-			String getDeliverableId = "select deliverable_id from deliverables where deliverable_title='"
-					+ deliverable_title.replace("'", "") + "';";
-			ResultSet deliverableID = stat.executeQuery(getDeliverableId);
+		int deliverable_id;
 
-			if (deliverableID.next()) {
-				deliverable_id = deliverableID.getInt(1);
-			} else {
-				throw new UnknownDeliverableException();
-			}
+		String getDeliverableId = "select deliverable_id from deliverables where deliverable_title='"
+				+ deliverable_title.replace("'", "") + "';";
+		ResultSet deliverableID = stat.executeQuery(getDeliverableId);
 
-			for (String keyword : keywords) {
-				String insertDeliverableKeyword = "insert ignore into DeliverableKeywords values (" + deliverable_id
-						+ ", '" + keyword + "');";
-				System.out.println(insertDeliverableKeyword);
-				stat.executeUpdate(insertDeliverableKeyword);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.err.println("errore: " + e.getMessage());
+		if (deliverableID.next()) {
+			deliverable_id = deliverableID.getInt(1);
+		} else {
+			throw new UnknownDeliverableException();
+		}
+
+		for (String keyword : keywords) {
+			String insertDeliverableKeyword = "insert ignore into DeliverableKeywords values (" + deliverable_id + ", '"
+					+ keyword + "');";
+			stat.executeUpdate(insertDeliverableKeyword);
 		}
 	};
 
 	public void loadDeliverableTargets(String deliverable_title, List<String> targets)
 			throws SQLException, UnknownDeliverableException {
-		try {
-			int deliverable_id;
 
-			String getDeliverableId = "select deliverable_id from deliverables where deliverable_title='"
-					+ deliverable_title.replace("'", "") + "';";
-			ResultSet deliverableID = stat.executeQuery(getDeliverableId);
+		int deliverable_id;
 
-			if (deliverableID.next()) {
-				deliverable_id = deliverableID.getInt(1);
-			} else {
-				throw new UnknownDeliverableException();
-			}
+		String getDeliverableId = "select deliverable_id from deliverables where deliverable_title='"
+				+ deliverable_title.replace("'", "") + "';";
+		ResultSet deliverableID = stat.executeQuery(getDeliverableId);
 
-			for (String target : targets) {
-				String insertDeliverableTargets = "insert ignore into DeliverableTargets values (" + deliverable_id
-						+ ", '" + target + "');";
-				System.out.println(insertDeliverableTargets);
-				stat.executeUpdate(insertDeliverableTargets);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.err.println("ERRORE " + e.getMessage());
+		if (deliverableID.next()) {
+			deliverable_id = deliverableID.getInt(1);
+		} else {
+			throw new UnknownDeliverableException();
 		}
-	};
 
-	public void loadStakeholderData(int stakeholder_id, String organization_name, String stakeholder_nature,
-			String stakeholder_country, String postal_code, String area, String nuts3, String stakeholder_city,
-			String stakeholder_address, String web_address, String email) throws SQLException {
-
-		String insertStakeholder = "insert into Stakeholders values (" + stakeholder_id + ", '" + organization_name
-				+ "', '" + stakeholder_nature + "', '" + stakeholder_country + "', '" + postal_code + "', '" + nuts3
-				+ "', '" + stakeholder_city + "', '" + stakeholder_address + "', '" + web_address + "', '" + email
-				+ "');";
-		stat.executeUpdate(insertStakeholder);
+		for (String target : targets) {
+			String insertDeliverableTargets = "insert ignore into DeliverableTargets values (" + deliverable_id + ", '"
+					+ target + "');";
+			stat.executeUpdate(insertDeliverableTargets);
+		}
 	};
 
 	public void loadProjectPartner(String project_acronym, String partner_name) throws SQLException {
-		try {
-			project_acronym = project_acronym.replace("'", "");
-			partner_name = partner_name.replace("'", "");
+		project_acronym = project_acronym.replace("'", "");
+		partner_name = partner_name.replace("'", "");
 
-			String getProjectId = "select project_id from projects where project_acronym='" + project_acronym + "';";
-			String getPartnerId = "select partner_id from partners where partner_name='" + partner_name + "';";
-
-			ResultSet ProjIdRes = stat.executeQuery(getProjectId);
-			int projectId = 0;
-			if (ProjIdRes.next()) {
-				projectId = ProjIdRes.getInt(1);
-			}
-
-			ResultSet PartIdRes = stat.executeQuery(getPartnerId);
-			int partnerId = 0;
-			if (PartIdRes.next()) {
-				partnerId = PartIdRes.getInt(1);
-			}
-
-			String insertProjectPartner = "insert ignore into projectPartners values (" + projectId + ", '" + partnerId
-					+ "');";
-			System.out.println(insertProjectPartner);
-			stat.executeUpdate(insertProjectPartner);
-		} catch (SQLException e) {
-			System.err.println("errore " + e.getMessage());
-			e.printStackTrace();
+		String getProjectId = "select project_id from projects where project_acronym='" + project_acronym + "';";
+		String getPartnerId = "select partner_id from partners where partner_name='" + partner_name + "';";
+		String getIsLeadPartner = "select ISLP from partners where partner_name='" + partner_name + "';";
+		String getErdfPartner = "select erdf from partners where partner_name='" + partner_name + "';";
+		String getErdfContribution = "select erdfContribution from partners where partner_name='" + partner_name + "';";
+		String getIpaFunds = "select ipa from partners where partner_name='" + partner_name + "';";
+		String getIpaContribution = "select ipaContribution from partners where partner_name='" + partner_name + "';";
+		String getAmount = "select amount from partners where partner_name='" + partner_name + "';";
+		ResultSet ProjIdRes = stat.executeQuery(getProjectId);
+		int projectId = 0;
+		if (ProjIdRes.next()) {
+			projectId = ProjIdRes.getInt(1);
 		}
-	};
+		ResultSet PartIdRes = stat.executeQuery(getPartnerId);
+		int partnerId = 0;
+		if (PartIdRes.next()) {
+			partnerId = PartIdRes.getInt(1);
+		}
+		ResultSet PartLeadRes = stat.executeQuery(getIsLeadPartner);
+		boolean is_leadPartner = false;
+		if (PartLeadRes.next()) {
+			is_leadPartner = PartLeadRes.getBoolean(1);
+		}
+		ResultSet partner_erdf = stat.executeQuery(getErdfPartner);
+		double erdf = 0.0;
+		if (partner_erdf.next()) {
+			erdf = partner_erdf.getDouble(1);
+		}
+		ResultSet partner_erdfContribution = stat.executeQuery(getErdfContribution);
+		double erdfContribution = 0.0;
+		if (partner_erdfContribution.next()) {
+			erdfContribution = partner_erdfContribution.getDouble(1);
+		}
+		ResultSet partner_ipaFunds = stat.executeQuery(getIpaFunds);
+		double ipaFunds = 0.0;
+		if (partner_ipaFunds.next()) {
+			ipaFunds = partner_ipaFunds.getDouble(1);
+		}
+		ResultSet partner_ipaContribution = stat.executeQuery(getIpaContribution);
+		double ipaContribution = 0.0;
+		if (partner_ipaContribution.next()) {
+			ipaContribution = partner_ipaContribution.getDouble(1);
+		}
+		ResultSet partner_amount = stat.executeQuery(getAmount);
+		double amount = 0.0;
+		if (partner_amount.next()) {
+			amount = partner_amount.getDouble(1);
+		}
 
-	public void loadProjectStakeholder() {
-	};
-
-	public void loadStakeholderKeywords() {
+		String insertProjectPartner = "insert ignore into projectPartners values (" + projectId + ", " + partnerId + ","
+				+ is_leadPartner + "," + erdf + "," + erdfContribution + "," + ipaFunds + "," + ipaContribution + ","
+				+ amount + ");";
+		stat.executeUpdate(insertProjectPartner);
 	};
 
 	public DeliverableDB getDeliverableData(int docid) throws SQLException {
@@ -302,9 +290,8 @@ public class DatabaseInterface {
 		deliverable_object.setDate(deliverable_rs.getDate(3));
 		deliverable_object.setDescription(deliverable_rs.getString(4));
 		deliverable_object.setType(deliverable_rs.getString(5));
-		deliverable_object.setBudget(deliverable_rs.getFloat(6));
-		deliverable_object.setProjectId(deliverable_rs.getInt(7));
-
+		deliverable_object.setProject_id(deliverable_rs.getInt(6));
+		deliverable_object.setPartner_id(deliverable_rs.getInt(7));
 		return deliverable_object;
 	};
 
@@ -389,8 +376,6 @@ public class DatabaseInterface {
 			tempPartner.setPartner_postalCode(partner_rs.getString("partner_postalCode"));
 			tempPartner.setPartner_area(partner_rs.getString("partner_area"));
 			tempPartner.setNuts3(partner_rs.getString("nuts3"));
-			tempPartner.setPartner_city(partner_rs.getString("partner_city"));
-			tempPartner.setPartner_address(partner_rs.getString("partner_address"));
 			tempPartner.setErdf(partner_rs.getDouble("erdf"));
 			tempPartner.setErdfContribution(partner_rs.getDouble("erdfContribution"));
 			tempPartner.setIpa_funds(partner_rs.getDouble("ipa_funds"));
@@ -431,3 +416,22 @@ public class DatabaseInterface {
 		return Targets;
 	}
 }
+
+//public void loadProjectStakeholder() {
+//}
+//
+//public void loadStakeholderKeywords() {
+//}
+
+/*
+ * public void loadStakeholderData(int stakeholder_id, String organization_name,
+ * String stakeholder_nature, String stakeholder_country, String postal_code,
+ * String area, String nuts3, String stakeholder_city, String
+ * stakeholder_address, String web_address, String email) throws SQLException {
+ * 
+ * String insertStakeholder = "insert into Stakeholders values (" +
+ * stakeholder_id + ", '" + organization_name + "', '" + stakeholder_nature +
+ * "', '" + stakeholder_country + "', '" + postal_code + "', '" + nuts3 + "', '"
+ * + stakeholder_city + "', '" + stakeholder_address + "', '" + web_address +
+ * "', '" + email + "');"; stat.executeUpdate(insertStakeholder); };
+ */

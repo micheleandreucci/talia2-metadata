@@ -1,22 +1,26 @@
 package jsonObjects;
 
 public class Partner {
-
-	private String name;
 	private boolean lp;
-	private String nature;
-	private String country;
-	private String area;
-	private String nuts3;
+	private String name;
 	private String postalCode;
 	private double erdf;
 	private double erdfContribution;
 	private double ipa;
 	private double ipaContribution;
 	private double amount;
+	private int id;
+	private String country;
+	private String nuts3;
+	private String nature;
+	private String area;
 
 	public Partner() {
 		// DEFAULT CONSTRUCTOR
+	}
+
+	public int getID() {
+		return id;
 	}
 
 	public String getName() {
@@ -59,11 +63,11 @@ public class Partner {
 		this.area = area;
 	}
 
-	public String getNUTS3() {
+	public String getNuts3() {
 		return nuts3;
 	}
 
-	public void setNUTS3(String nUTS3) {
+	public void setNuts3(String nUTS3) {
 		nuts3 = nUTS3;
 	}
 

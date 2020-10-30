@@ -1,4 +1,5 @@
 package databaseObjects;
+
 import java.sql.Date;
 
 public class DeliverableDB {
@@ -7,42 +8,75 @@ public class DeliverableDB {
 	private String url;
 	private String title;
 	private Date date;
-	private String description; 
+	private String description;
 	private String type;
-	private float budget;
 	private int project_id;
-	
-	public DeliverableDB() {};
-	
-	public void setId (int _id) {
+	private int partner_id;
+
+	public DeliverableDB() {
+	};
+
+	public void setId(int _id) {
 		id = _id;
 	}
-	
-	public void setUrl (String _url) {
+
+	public int getId() {
+		return id;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String _url) {
 		url = _url;
 	}
-	
-	public void setTitle (String _title) {
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String _title) {
 		title = _title;
 	}
-	
-	public void setDate (Date _date) {
+
+	public Date getDate() {
+		return date;
+	}
+
+	public void setDate(Date _date) {
 		date = _date;
 	}
-	
-	public void setDescription (String _description) {
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String _description) {
 		description = _description;
 	}
-	
-	public void setType (String _type) {
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String _type) {
 		type = _type;
 	}
-	
-	public void setBudget (float _budget) {
-		budget = _budget;
+
+	public int getProject_id() {
+		return project_id;
 	}
-	
-	public void setProjectId (int _project_id) {
-		project_id = _project_id;
+
+	public void setProject_id(int project_id) {
+		this.project_id = project_id;
+	}
+
+	public int getPartner_id() {
+		return partner_id;
+	}
+
+	public void setPartner_id(int partner_id) {
+		this.partner_id = partner_id;
 	}
 }

@@ -4,7 +4,7 @@ import java.util.List;
 import jsonObjects.*;
 
 public class DocumentListJson {
-  /**
+	/**
 	 * the collection name
 	 */
 	private String collection;
@@ -13,15 +13,19 @@ public class DocumentListJson {
 	 */
 	private List<Document> documents = new LinkedList<Document>();
 
-  public DocumentListJson() {
-    //DEFAULT CONSTRUCTOR
-  }
+	public DocumentListJson() {
+		// DEFAULT CONSTRUCTOR
+	}
 
-  public String getCollection() { 
-	  return collection; 
-  };
-  
-  public List<Document> getDocuments() { 
-	  return documents; 
-  };
+	public String getCollection() {
+		return collection;
+	};
+
+	public List<Document> getDocuments() {
+		return documents;
+	}
+
+	public String toString() {
+		return collection;
+	}
 }

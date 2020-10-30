@@ -6,23 +6,26 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Json_Parser {
-  private String json_path;
-  private String collection_name;
+	private String json_path;
+	private String collection_name;
 
-	 /*Il main sarà eliminato
-  public static void main (String args[]) {
-    Json_Parser blue_growth_json_parser = new Json_Parser("C:\\Users\\Flavio\\Documents\\Workspace Eclipse JEE\\metadata-module", "Blue Growth");
-    DocumentListJson collection_data_object = blue_growth_json_parser.parseJson();
+	/*
+	 * Il main sarà eliminato public static void main (String args[]) { Json_Parser
+	 * blue_growth_json_parser = new
+	 * Json_Parser("C:\\Users\\Flavio\\Documents\\Workspace Eclipse JEE\\metadata-module"
+	 * , "Blue Growth"); DocumentListJson collection_data_object =
+	 * blue_growth_json_parser.parseJson();
+	 * 
+	 * System.out.println(collection_data_object.getCollection()); }
+	 */
 
-    System.out.println(collection_data_object.getCollection());
-  }*/
+	public Json_Parser(String _json_path, String _collection_name) {
+		json_path = _json_path;
+		collection_name = _collection_name;
+	}
 
-  public Json_Parser(String _json_path, String _collection_name) {
-    json_path = _json_path;
-    collection_name = _collection_name;
-  }
-  
-  public Json_Parser() {};
+	public Json_Parser() {
+	};
 
 	/**
 	 * testing deserialization on json files
@@ -40,10 +43,11 @@ public class Json_Parser {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.err.println("file non trovato");
 		}
 		return null;
 	}
-	
+
 	public DocumentListJson parseJson(String json_string) {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
