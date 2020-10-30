@@ -7,13 +7,11 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class Project {
 
-	private String acronym;
 	private int axis;
 	private int objective;
+	private String acronym;
 	private String label;
 	private String summary;
-	private String country;
-	private String postcode;
 	private String call;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	private Date start;
@@ -70,22 +68,6 @@ public class Project {
 
 	public void setSummary(String summary) {
 		this.summary = summary;
-	}
-
-	public String getCountry() {
-		return country;
-	}
-
-	public void setCountry(String country) {
-		this.country = country;
-	}
-
-	public String getPostcode() {
-		return postcode;
-	}
-
-	public void setPostcode(String zip) {
-		this.postcode = zip;
 	}
 
 	public String getCall() {

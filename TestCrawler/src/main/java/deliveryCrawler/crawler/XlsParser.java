@@ -14,6 +14,9 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+/*
+ * XlsParser.java si occupa di leggere i dati dagli xls Files.
+ */
 
 public class XlsParser {
 
@@ -26,7 +29,7 @@ public class XlsParser {
 	 * @return
 	 */
 	public static Map<String, Project> parseProjects(String projectFilePath, String partnersFilePath) {
-//		System.out.println("partnersFilePath: "+partnersFilePath);
+
 		Map<String, List<Partner>> partners = parsePartners(partnersFilePath);
 
 		Map<String, Project> projects = new HashMap<String, Project>();
@@ -50,7 +53,7 @@ public class XlsParser {
 		// iterate over row
 		Iterator<Row> rowIt = sheet.iterator();
 
-		int rowStart = 4;
+		int rowStart = 3;
 		for (int i = 0; i < rowStart; i++) {
 
 			rowIt.next();
@@ -64,17 +67,18 @@ public class XlsParser {
 			// axis
 			Iterator<Cell> cellIt = row.cellIterator();
 			Cell axisCell = cellIt.next();
-			switch(axisCell.getCellType()) {
+
+			switch (axisCell.getCellType()) {
 			case NUMERIC:
 				p.setAxis((int) axisCell.getNumericCellValue());
 				break;
 			default:
 				break;
 			}
-			
+
 			// objective
 			Cell objCell = cellIt.next();
-			switch(objCell.getCellType()) {
+			switch (objCell.getCellType()) {
 			case NUMERIC:
 				p.setObjective((int) objCell.getNumericCellValue());
 				break;
@@ -97,14 +101,11 @@ public class XlsParser {
 			// ignore cell
 			cellIt.next();
 
-			// country
-			Cell countryCell = cellIt.next();
-			p.setCountry(countryCell.toString().trim());
+			// ignore country
+			cellIt.next();
 
-			// postalcode
-			String zipCell = cellIt.next().toString();
-			String zip = zipCell.replaceFirst("\\.0", "");
-			p.setPostcode(zip);
+			// ignore postalcode
+			cellIt.next();
 
 			// call
 			Cell callCell = cellIt.next();
@@ -172,16 +173,16 @@ public class XlsParser {
 	public static Map<String, List<Partner>> parsePartners(String filePath) {
 
 		File partnersFile = new File(filePath);
-//		System.out.println("partnersFile: "+partnersFile);
+
 		FileInputStream fis = null;
 		XSSFWorkbook workbook = null;
 		Map<String, List<Partner>> partners = new HashMap<String, List<Partner>>();
 
 		try {
 			fis = new FileInputStream(partnersFile);
-//			System.out.println("fis: "+fis.toString());
+
 			workbook = new XSSFWorkbook(fis);
-//			System.out.println("workbook: "+workbook);
+
 		} catch (IOException e) {
 
 			System.out.println("Error opening partners file: " + e);
@@ -212,7 +213,7 @@ public class XlsParser {
 			// acronym
 			Cell acrCell = cellIt.next();
 			String project = acrCell.toString().replaceAll("\\s+", "");
-
+			
 			// Lead Partner
 			String isLPStr = cellIt.next().toString().trim();
 			boolean isLp = isLPStr.equals("1.0");
@@ -238,9 +239,9 @@ public class XlsParser {
 
 			// NUTS3
 			Cell nuts3Cell = cellIt.next();
-			p.setNUTS3(nuts3Cell.toString().trim());
+			p.setNuts3(nuts3Cell.toString().trim());
 
-			// postal code
+			//postal code
 			String zip = cellIt.next().toString().trim();
 			zip = zip.replaceFirst("\\.0", "");
 			p.setPostalCode(zip);

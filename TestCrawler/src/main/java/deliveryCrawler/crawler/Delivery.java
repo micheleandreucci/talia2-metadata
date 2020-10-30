@@ -4,9 +4,11 @@ import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 
 public class Delivery {
-
+	private int id;
 	private String url;
 	private String title;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
@@ -14,7 +16,7 @@ public class Delivery {
 	private String description;
 	private String type;
 	private List<String> keywords;
-	private List<String> audience;
+	private List<String> targets;
 	private Project progetto;
 
 	public Delivery() {
@@ -33,6 +35,10 @@ public class Delivery {
 		this.setDate(date);
 		this.description = description;
 		this.type = type;
+	}
+
+	public int getId() {
+		return id;
 	}
 
 	public String getTitle() {
@@ -68,11 +74,11 @@ public class Delivery {
 	}
 
 	public List<String> getTargets() {
-		return audience;
+		return targets;
 	}
 
 	public void setTargets(List<String> targets) {
-		this.audience = targets;
+		this.targets = targets;
 	}
 
 	public Project getProgetto() {
@@ -103,4 +109,5 @@ public class Delivery {
 		return "Titolo: " + this.getTitle() + "\nProgetto: " + this.getProgetto().getAcronym() + "\nSummary: "
 				+ this.getProgetto().getSummary();
 	}
+
 }
