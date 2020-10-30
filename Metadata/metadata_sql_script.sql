@@ -4,7 +4,7 @@ use Talia2;
 
 DROP USER 'talia2'@'localhost';
 CREATE USER 'talia2' @'localhost' IDENTIFIED BY 'root';
-GRANT SELECT,INSERT ON Talia2.* TO talia2@localhost;
+GRANT ALL PRIVILEGES ON Talia2.* TO talia2@localhost;
 
 create table Communities (
   collection varchar(50) primary key
@@ -20,7 +20,7 @@ create table Projects (
   call_for_proposals varchar(20),
   start_date date,
   end_date date,
-  project_type varchar(50),
+  project_type varchar(40),
   erdf double(14,2),
   ipa_funds double(14,2),
   project_amount double(14,2),
@@ -60,22 +60,24 @@ create table Deliverables (
   deliverable_url varchar(300),
   deliverable_title varchar (200) UNIQUE,
   deliverable_date date,
-  deliverable_description varchar(2000),
-  deliverable_type varchar(150),
+  deliverable_description varchar(400),
+  deliverable_type varchar(30),
   deliverable_project_id int not null,
-  deliverable_author_id int not null
-  /*foreign key (deliverable_project_id) references Projects(project_id)
-  foreign key (deliverable_author_id) references Partners(partner_id)*/
+  deliverable_author_id int not null,
+  foreign key (deliverable_project_id) references Projects(project_id),
+  foreign key (deliverable_author_id) references Partners(partner_id)
 );
 
 create table DeliverableKeywords (
-  deliverable_id int not null primary key,
+  deliverable_id int not null,
   foreign key (deliverable_id) references Deliverables(deliverable_id),
-  related_keyword varchar(200) unique
+  related_keyword varchar(60),
+  primary key(deliverable_id, related_keyword)
 );
 
 create table DeliverableTargets (
-  deliverable_id int not null primary key,
+  deliverable_id int not null,
   foreign key (deliverable_id) references Deliverables(deliverable_id),
-  deliverable_target varchar(200) unique
+  deliverable_target varchar(50),
+  primary key(deliverable_id, deliverable_target)
 );
