@@ -12,38 +12,52 @@ public class Models implements Serializable {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	public ArrayList<Model> matrixModels = new ArrayList<Model>();
+	public static ArrayList<Model> matrixModels = new ArrayList<Model>();
 
 	public void SaveModels() throws IOException {
 		FileOutputStream outFile = new FileOutputStream("saved.txt");
 		@SuppressWarnings("resource")
 		ObjectOutputStream outStream = new ObjectOutputStream(outFile);
-		outStream.writeObject(this.matrixModels);
+		outStream.writeObject(Models.matrixModels);
 		outStream.close();
 
 	}
 
 	@SuppressWarnings("unchecked")
-	public void loadModels() throws ClassNotFoundException, IOException {
-		File filepath=new File("saved.txt");
-		if(filepath.exists()) {
+	public static ArrayList<Model> loadModels() throws ClassNotFoundException, IOException {
+		File filepath = new File("saved.txt");
+		if (filepath.exists()) {
 			FileInputStream inFile = new FileInputStream(filepath);
 			ObjectInputStream in = new ObjectInputStream(inFile);
-			this.matrixModels = (ArrayList<Model>) in.readObject();
+			matrixModels = (ArrayList<Model>) in.readObject();
 			in.close();
 		}
+		return matrixModels;
 	}
 
 	public static void main(String args[]) throws IOException, ClassNotFoundException {
-		/*
-		 * Model prova=new Model(); prova.setAuthor("lorenzo");
-		 * prova.setCollection("collection"); Model prova1=new Model();
-		 * prova1.setAuthor("fernando"); prova1.setCollection("collection1"); Models
-		 * m=new Models(); m.matrixModels.add(prova); m.matrixModels.add(prova1);
-		 */
+
+		Model prova = new Model();
+		prova.setAuthor("lorenzo");
+		prova.setCollection("collection");
+		Model prova1 = new Model();
+		prova1.setAuthor("fernando");
+		prova1.setCollection("collection1");
 		Models m = new Models();
-		m.loadModels();
-		System.out.println(m.matrixModels.get(1).getAuthor());
+		Models.matrixModels.add(prova);
+		Models.matrixModels.add(prova1);
+		m.SaveModels();
+		for (int i = 0; i < matrixModels.size(); i++) {
+			System.out.println("" + Models.loadModels().get(i).getAuthor());
+		}
+		System.out.println(Models.matrixModels.get(1).getAuthor());
+		System.out.println(Models.matrixModels.get(1).getCollection());
+//		System.out.println(Models.matrixModels.toString());
+		/*
+		 * Models m = new Models();
+		 * 
+		 * m.loadModels(); System.out.println(m.matrixModels.get(1).getAuthor());
+		 */
 
 	}
 }

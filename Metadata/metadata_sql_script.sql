@@ -1,5 +1,6 @@
 drop database if exists Talia2;
-CREATE DATABASE Talia2;
+CREATE DATABASE Talia2 CHARACTER SET utf8
+  COLLATE utf8_general_ci;
 use Talia2;
 
 DROP USER 'talia2'@'localhost';

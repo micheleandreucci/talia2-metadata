@@ -44,8 +44,8 @@ public class LoadMatrix extends HttpServlet {
 		String res = "failed";
 		try {
 			Models models = new Models();
-			models.loadModels();
-			models.matrixModels.get(0).getAuthor();
+			Models.loadModels();
+			Models.matrixModels.get(0).getAuthor();
 			ObjectMapper objectMapper = new ObjectMapper();
 			res = objectMapper.writeValueAsString(models);
 
