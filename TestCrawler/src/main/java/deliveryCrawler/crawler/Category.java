@@ -1,10 +1,9 @@
 package deliveryCrawler.crawler;
 
 import java.io.File;
-import java.io.FileInputStream;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -14,7 +13,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,11 +22,9 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+
 import org.apache.commons.io.FileUtils;
-import org.apache.poi.util.SystemOutLogger;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.*;
 import org.jsoup.select.Elements;
@@ -37,10 +34,13 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.junrar.Archive;
+import com.github.junrar.Junrar;
 
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
+
 
 @JsonIgnoreProperties(value = { "path", "number", "lastMetadataFile", "metadataPath", "formats" })
 public class Category {
@@ -79,7 +79,7 @@ public class Category {
 		this.formats = formats;
 	}
 
-	private String[] formats = { "zip", "pdf" };
+	private String[] formats = { "zip", "pdf", "rar" };
 
 	public Category() {
 		// DEFAULT CONSTRUCTOR
@@ -668,9 +668,7 @@ public class Category {
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
-			} catch (NullPointerException e) {
-				System.err.println("errore");
-			}
+			} 
 
 			if (date == null) {
 				date = new Date(con.getLastModified());
@@ -693,24 +691,44 @@ public class Category {
 				while (i < nTry && !downloaded) {
 
 					try {
+						File folder = null;
+						if (path.contains(".zip")) {
+							 folder = new File(path.replace(".zip", ""));
+							 if (!folder.isDirectory()) {
+								// download file
+									
+									FileUtils.copyURLToFile(url, file, 30000, 30000);
+									
+									// get the list of zip files
+									fileNames = unzip(path, directory);
+									System.out.println(name + " - downloded at " + (i + 1) + " attempt");
+									boolean deleted = file.delete();
 
-						File folder = new File(path.replace(".zip", ""));
-						// Se la cartella esiste in locale per l'estensione zip
-						if (!folder.isDirectory() && ext.equalsIgnoreCase("zip")) {
-							// download file
-							FileUtils.copyURLToFile(url, file, 30000, 30000);
-							// get the list of zip files
-							fileNames = unzip(path, directory, allowedFormats);
-							System.out.println(name + " - downloded at " + (i + 1) + " attempt");
-							boolean deleted = file.delete();
+									if (deleted) {
 
-							if (deleted) {
+										System.out.println("zip deleted");
+									} else {
 
-								System.out.println("zip deleted");
-							} else {
+										System.out.println("error deleting zip");
+									}
+							 }
+						} else if (path.contains(".rar")) {
+							 folder = new File(path.replace(".rar", ""));
+							 if (!folder.isDirectory()) {
+								 FileUtils.copyURLToFile(url, file, 30000, 30000);
+								 System.out.println(name + " - downloded at " + (i + 1) + " attempt");
+								 fileNames = extract(path,directory);
+								 boolean deleted = file.delete();
 
-								System.out.println("error deleting zip");
-							}
+									if (deleted) {
+
+										System.out.println("rar deleted");
+									} else {
+
+										System.out.println("error deleting rar");
+									}
+							 }
+						
 						} else if (ext.equalsIgnoreCase("pdf")) {
 							// download it
 							FileUtils.copyURLToFile(url, file, 30000, 30000);
@@ -781,53 +799,16 @@ public class Category {
 	 * @throws IOException
 	 * @throws IllegalArgumentException
 	 */
-	private static List<String> unzip(String fileZipPath, String destDirPath, String[] allowedFormats) {
+	private static List<String> unzip(String fileZipPath, String destDirPath) {
 		List<String> fileNames = new LinkedList<String>();
-		/*
-		 * String zipName = getFileName(fileZipPath); String zipNameNoExt =
-		 * zipName.replaceAll("\\.zip", "");
-		 * 
-		 * // create a folder with the same name of the zip file File destDir = new
-		 * File(destDirPath + "/" + zipNameNoExt + "/"); destDir.mkdirs();
-		 * 
-		 * List<String> filesName = new LinkedList<String>();
-		 * 
-		 * // read zip entry byte[] buffer = new byte[1024]; ArchiveInputStream zis =
-		 * new ZipArchiveInputStream(new FileInputStream(fileZipPath), "UTF-8", false,
-		 * true); ArchiveEntry zipEntry = zis.getNextEntry();
-		 * 
-		 * while (zipEntry != null) {
-		 * 
-		 * String name = zipEntry.getName();
-		 * 
-		 * // don't create folder nested folder if (name.lastIndexOf("/") ==
-		 * name.length() - 1) {
-		 * 
-		 * zipEntry = zis.getNextEntry(); continue; }
-		 * 
-		 * String ext = getFileExtention(name);
-		 * 
-		 * boolean isAllowedFormat = isAllowedFormat(ext, allowedFormats);
-		 * 
-		 * // write only if it is one of the allowed format excluding zip if
-		 * (isAllowedFormat && !ext.equalsIgnoreCase("zip")) {
-		 * 
-		 * // transform the path into a plain name name = name.replace("/", "-");
-		 * 
-		 * // add file name to the list filesName.add(zipNameNoExt + "/" + name);
-		 * 
-		 * // write the file File newFile = new File(destDir, name); FileOutputStream
-		 * fos = new FileOutputStream(newFile); int len; while ((len = zis.read(buffer))
-		 * > 0) { fos.write(buffer, 0, len); } fos.close(); }
-		 * 
-		 * zipEntry = zis.getNextEntry(); } // zis.closeEntry(); zis.close();
-		 */
+		
 		try {
 			ZipFile zipFile = new ZipFile(fileZipPath);
 			String zipName = getFileName(fileZipPath);
 			String zipNameNoExt = zipName.replaceAll("\\.zip", "");
 			File folder = new File(destDirPath);
 			List listHeader = zipFile.getFileHeaders();
+			
 			if (!(zipNameNoExt.contains(folder.getName()))) {
 
 				// crea una cartella con lo stesso nome dello zip
@@ -853,6 +834,44 @@ public class Category {
 		return fileNames;
 
 	}
+	
+	private static List<String> extract(String filePath, String destDirPath) {
+		List<String> fileNames = new LinkedList<String>();
+		String rarName = getFileName(filePath);
+		File f = new File(filePath);
+		
+		//cartella della categoria
+		File folder = new File(destDirPath);
+		String rarNameNoExt = rarName.replaceAll("\\.rar", "");
+        try (Archive rarFile = new Archive (f)) {
+        	
+        	if (!(rarNameNoExt.contains(folder.getName()))) {
+
+				// crea una cartella con lo stesso nome del rar
+				File destDir = new File(destDirPath + "/" + rarNameNoExt + "/");
+				destDir.mkdirs();
+        		com.github.junrar.rarfile.FileHeader listHeader = rarFile.nextFileHeader();
+            	System.out.println("decompress " + rarName);
+            	String fileName = "";
+				while (listHeader != null) {
+					fileName = listHeader.getFileName();
+					Junrar.extract(filePath, destDir.getAbsolutePath());
+                    fileNames.add(fileName);
+                    listHeader = rarFile.nextFileHeader();		
+						
+				}
+				rarFile.close();
+				
+				
+			}            	
+            
+        }  catch (Exception e) {
+            System.err.println("unPack zip file to " + destDirPath + " fail ...." + e.getMessage() + e);
+        }
+        
+        return fileNames;
+	}
+	  
 
 	private static boolean isAllowedFormat(String ext, String[] allowedFormats) {
 
