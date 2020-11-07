@@ -64,9 +64,9 @@ create table Deliverables (
   deliverable_description varchar(2000),
   deliverable_type varchar(150),
   deliverable_project_id int not null,
-  deliverable_author_id int not null
-  /*foreign key (deliverable_project_id) references Projects(project_id)
-  foreign key (deliverable_author_id) references Partners(partner_id)*/
+  deliverable_author_id int not null,
+  foreign key (deliverable_project_id) references Projects(project_id),
+  foreign key (deliverable_author_id) references Partners(partner_id)
 );
 
 create table DeliverableKeywords (
