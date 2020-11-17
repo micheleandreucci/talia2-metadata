@@ -1,3 +1,4 @@
+
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
@@ -43,8 +44,8 @@ public class Search extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
 		String query = request.getParameter("query");
+		System.out.println("collezione " + query);
 		String collection = request.getParameter("collection");
 		collection = collection.replace(" ", "%20");
 		String collections[] = collection.split(",");

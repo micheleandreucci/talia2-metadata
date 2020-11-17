@@ -33,12 +33,12 @@ public class Matrix extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		String requestJson = request.getParameter("request");
-		if(requestJson==null) {
-			int index=Integer.parseInt(request.getParameter("index"));
+		if (requestJson == null) {
+			int index = Integer.parseInt(request.getParameter("index"));
 			Models models = new Models();
 			try {
 				models.loadModels();
-				String name=models.matrixModels.get(index).getName_A();
+				String name = models.matrixModels.get(index).getName_A();
 				models.matrixModels.remove(index);
 				models.SaveModels();
 				response.setContentType("text/html");
@@ -49,23 +49,23 @@ public class Matrix extends HttpServlet {
 				response.setStatus(500);
 				response.getWriter().append("cannot delete.");
 			}
-		}else {
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-		Model mod = objectMapper.readValue(requestJson, Model.class);
-		Models models = new Models();
-		try {
-			models.loadModels();
-			models.matrixModels.add(mod);
-			models.SaveModels();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		response.setContentType("text/html");
-		response.setStatus(200);
-		response.getWriter().append(mod.getName_A() + " saved.");
+		} else {
+			ObjectMapper objectMapper = new ObjectMapper();
+			objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+			Model mod = objectMapper.readValue(requestJson, Model.class);
+			Models models = new Models();
+			try {
+				models.loadModels();
+				models.matrixModels.add(mod);
+				models.SaveModels();
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			response.setContentType("text/html");
+			response.setStatus(200);
+			response.getWriter().append(mod.getName_A() + " saved.");
 		}
 
 	}
@@ -77,15 +77,15 @@ public class Matrix extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		
+
 		String requestJson = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 		Model mod = objectMapper.readValue(requestJson, Model.class);
 		Models models = new Models();
 		try {
-			models.loadModels();
-			models.matrixModels.add(mod);
+			Models.loadModels();
+			Models.matrixModels.add(mod);
 			models.SaveModels();
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -95,6 +95,6 @@ public class Matrix extends HttpServlet {
 		response.setContentType("text/html");
 		response.setStatus(200);
 		response.getWriter().append(mod.getName_A() + " saved.");
-		//doGet(request, response);
+		// doGet(request, response);
 	}
 }

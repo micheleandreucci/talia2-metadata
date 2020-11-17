@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+</head>
+<body>
+<h1>List of concepts</h1>
+<div id="concepts">
+
+</div>
+	<script>
+	function delay() {
+		  return new Promise(resolve => setTimeout(resolve, 20));
+		}
+
+	async function loop(){
+        for(var i=0;i<phrases.length;i++){
+        	await delay();
+			document.getElementById("concepts").innerHTML+=phrases[i]+"<br>";
+		}
+    }
+	var phrases=[];
+		var collection=window.collection;
+		var url="http://90.147.102.57:9001/ivp/v2/getConcepts/";
+		url=url + collection +"/2/5";
+		 var xmlHttp = new XMLHttpRequest();
+         xmlHttp.open( "GET",url, false ); // false for synchronous request
+         xmlHttp.send( null );
+        phrases = JSON.parse(xmlHttp.response);
+        loop();
+		
+	</script>
+	
+</body>
+</html>
